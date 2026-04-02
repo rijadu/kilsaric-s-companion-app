@@ -1,0 +1,142 @@
+.daily-close-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.daily-close-header h1,
+.daily-close-summary h2,
+.daily-close-list h2 {
+  margin: 0;
+}
+
+.daily-close-date,
+.daily-close-summary,
+.daily-close-list,
+.empty-state {
+  padding: 1rem;
+}
+
+.daily-close-date {
+  width: 100%;
+  border: 1px solid rgb(203 213 225 / 0.9);
+  border-radius: 1rem;
+}
+
+.daily-close-summary,
+.daily-close-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.daily-close-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-card {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgb(248 250 252 / 1);
+  border: 1px solid rgb(226 232 240 / 0.8);
+  text-align: center;
+}
+
+.metric-card span,
+.metric-card small,
+.daily-close-details span {
+  color: var(--muted-foreground);
+}
+
+.metric-card strong {
+  font-size: 1.25rem;
+}
+
+.metric-card__positive {
+  color: #15803d;
+}
+
+.metric-card__negative {
+  color: #b91c1c;
+}
+
+.metric-card__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  margin: 0 auto 0.15rem;
+}
+
+.metric-card__icon--success {
+  color: hsl(var(--success));
+}
+
+.metric-card__icon--primary {
+  color: hsl(var(--primary));
+}
+
+.daily-close-details__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.daily-close-details__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.daily-close-details {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.daily-close-details div,
+.daily-close-list__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.daily-close-list__rows {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.daily-close-list__row {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgb(226 232 240 / 0.9);
+}
+
+.daily-close-list__row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 540px) {
+  .daily-close-header,
+  .daily-close-details div,
+  .daily-close-list__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .daily-close-metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,273 @@
+.product-form-page {
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.product-form-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-form-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.back-button {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+
+.back-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.status-banner {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+}
+
+.product-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-section {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.form-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.form-section__header h2 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-section > h2 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.form-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field span {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid rgb(203 213 225 / 0.9);
+  border-radius: 0.75rem;
+  padding: 0.72rem 0.9rem;
+  background: white;
+  color: hsl(var(--foreground));
+  font-size: 0.95rem;
+}
+
+.field-input--mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.field-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.field-toggle span {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.switch-button {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(226 232 240 / 1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.switch-button__thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch-button--active {
+  background: hsl(var(--primary));
+}
+
+.switch-button--active .switch-button__thumb {
+  transform: translateX(1.25rem);
+}
+
+.preview-bar {
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgb(241 245 249 / 0.75);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.variant-stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.variant-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  border: 1px solid rgb(203 213 225 / 0.9);
+  border-radius: 0.5rem;
+  background: white;
+  padding: 0 0.75rem;
+  color: hsl(var(--foreground));
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.variant-add-button svg,
+.variant-card__remove svg,
+.primary-submit svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.variant-empty {
+  padding: 0.75rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.variant-card {
+  display: grid;
+  gap: 0.8rem;
+  border-radius: 0.5rem;
+  padding: 0.9rem;
+  background: rgb(248 250 252 / 0.55);
+  border: 1px solid rgb(226 232 240 / 0.85);
+}
+
+.variant-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.variant-card__header button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.variant-card__header strong {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.variant-card__remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: #b91c1c;
+}
+
+.form-error {
+  margin: 0;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.primary-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  min-height: 3.35rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field input[type='date'] {
+  min-height: 2.85rem;
+}
+
+@media (max-width: 640px) {
+  .form-grid--two {
+    grid-template-columns: 1fr;
+  }
+}

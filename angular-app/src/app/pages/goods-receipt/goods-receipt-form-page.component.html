@@ -1,0 +1,159 @@
+<section class="app-page">
+  <header class="form-header">
+    <h1>{{ isEditing ? 'Izmena nabavke' : 'Nova nabavka' }}</h1>
+    <button type="button" class="secondary-button" (click)="cancel()">Otkaži</button>
+  </header>
+
+  @if (pageMessage()) {
+    <section class="status-banner app-card">
+      <span>{{ pageMessage() }}</span>
+    </section>
+  }
+
+  <section class="receipt-form app-card">
+    <div class="supplier-autocomplete">
+      <input
+        type="text"
+        [ngModel]="supplier()"
+        (ngModelChange)="updateSupplier($event)"
+        (focus)="showSupplierSuggestions.set(true)"
+        (blur)="hideSupplierSuggestions()"
+        placeholder="Dobavljač (opciono)"
+        autocomplete="off"
+      />
+      @if (showSupplierSuggestions() && filteredSuppliers().length > 0) {
+        <div class="supplier-autocomplete__dropdown">
+          @for (s of filteredSuppliers(); track s.id) {
+            <button type="button" class="supplier-autocomplete__item" (click)="selectSupplier(s.name)">
+              <span>{{ s.name }}</span>
+              @if (s.phone) {
+                <small class="app-muted">{{ s.phone }}</small>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <input type="text" [ngModel]="note()" (ngModelChange)="updateNote($event)" placeholder="Napomena (opciono)" />
+
+    <div class="receipt-scanner app-card">
+      @if (scanning()) {
+        <div class="receipt-scanner__live">
+          <div class="receipt-scanner__region" [id]="scannerRegionId"></div>
+          <button type="button" class="receipt-scanner__stop" (click)="stopScanner()" aria-label="Zaustavi skener">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="receipt-scanner__idle" (click)="startScanner()">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M7 7h10M7 12h10M7 17h6" />
+          </svg>
+          <span>Skeniraj barkod</span>
+        </button>
+      }
+    </div>
+
+    <div class="receipt-search">
+      <span class="receipt-search__icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="updateSearch($event)"
+        (keydown.enter)="handleSearchEnter()"
+        placeholder="Pretraži ili unesi barkod..."
+      />
+      @if (showSearch() && filteredProducts().length > 0) {
+        <div class="receipt-search__results app-card">
+          @for (product of filteredProducts(); track product.id) {
+            <button type="button" class="receipt-search__item" (click)="addItem(product)">
+              <div>
+                <span>{{ product.name }}</span>
+                <small class="app-muted">Stanje: {{ product.stock }}</small>
+              </div>
+              <small class="app-muted">{{ product.barcode || product.sku }}</small>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (items().length > 0) {
+      <div class="receipt-items">
+        <p class="app-muted">Artikli ({{ items().length }})</p>
+        @for (item of items(); track item.productId; let index = $index) {
+          <article class="receipt-item">
+            <div class="receipt-item__header">
+              <strong class="receipt-item__name">{{ item.productName }}</strong>
+              <button type="button" class="receipt-item__remove" (click)="removeItem(index)" aria-label="Ukloni">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                </svg>
+              </button>
+            </div>
+            <div class="receipt-item__qty-row">
+              <span class="receipt-item__label">Količina</span>
+              <div class="receipt-qty">
+                <button type="button" class="receipt-qty__btn" (click)="decrementQty(index)" aria-label="Smanji">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                </button>
+                <input
+                  type="number"
+                  class="receipt-qty__input"
+                  [ngModel]="item.quantity"
+                  (ngModelChange)="updateItem(index, 'quantity', $event)"
+                  min="1"
+                />
+                <button type="button" class="receipt-qty__btn" (click)="incrementQty(index)" aria-label="Povećaj">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="receipt-item__controls">
+              <div class="receipt-item__field">
+                <span class="receipt-item__label">Nabavna cena</span>
+                <input
+                  type="number"
+                  class="receipt-item__price-input"
+                  [ngModel]="item.costPrice"
+                  (ngModelChange)="updateItem(index, 'costPrice', $event)"
+                  min="0"
+                  placeholder="0"
+                />
+              </div>
+              <div class="receipt-item__field">
+                <span class="receipt-item__label">Prodajna cena</span>
+                <input
+                  type="number"
+                  class="receipt-item__price-input"
+                  [ngModel]="item.sellingPrice"
+                  (ngModelChange)="updateItem(index, 'sellingPrice', $event)"
+                  min="0"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div class="receipt-item__footer">
+              <span class="app-muted">Marža: <span class="receipt-item__margin" [class.receipt-item__margin--positive]="(margin(item) ?? 0) > 0">{{ margin(item) !== null ? formatCurrency(margin(item)!) + '%' : '—' }}</span></span>
+              <strong>{{ formatCurrency(item.quantity * item.costPrice) }} RSD</strong>
+            </div>
+          </article>
+        }
+        <div class="receipt-total">
+          <span>Ukupna nabavka</span>
+          <strong>{{ formatCurrency(totalCost()) }} RSD</strong>
+        </div>
+      </div>
+    }
+
+    <button type="button" class="primary-button" [disabled]="items().length === 0" (click)="submit()">
+      {{ isEditing ? 'Sačuvaj izmene' : 'Evidentiraj prijem robe' }} ({{ items().length }} artikala)
+    </button>
+  </section>
+</section>

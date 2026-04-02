@@ -1,0 +1,117 @@
+<section class="app-page">
+  <header class="reports-header">
+    <button type="button" class="reports-header__back" (click)="goBack()" aria-label="Nazad">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </button>
+    <h1>Izveštaji</h1>
+  </header>
+
+  <div class="reports-periods">
+    @for (entry of periodOptions; track entry.key) {
+      <button
+        type="button"
+        class="reports-periods__button"
+        [class.reports-periods__button--active]="period() === entry.key"
+        (click)="setPeriod(entry.key)"
+      >
+        {{ entry.label }}
+      </button>
+    }
+  </div>
+
+  <section class="reports-grid">
+    <article class="metric-card app-card">
+      <span class="metric-card__label">Prihod</span>
+      <strong>{{ formatCurrency(totals().revenue) }}</strong>
+      <span class="metric-card__suffix">RSD</span>
+    </article>
+    <article class="metric-card app-card">
+      <span class="metric-card__label">Profit</span>
+      <strong class="metric-card__value--success">{{ formatCurrency(totals().profit) }}</strong>
+      <span class="metric-card__suffix">RSD</span>
+    </article>
+    <article class="metric-card app-card">
+      <span class="metric-card__label">Br. prodaja</span>
+      <strong>{{ totals().totalSales }}</strong>
+      <span class="metric-card__suffix">&nbsp;</span>
+    </article>
+    <article class="metric-card app-card">
+      <span class="metric-card__label">Prosečan račun</span>
+      <strong>{{ formatCurrency(totals().avgSale) }}</strong>
+      <span class="metric-card__suffix">RSD</span>
+    </article>
+  </section>
+
+  <section class="report-panel app-card">
+    <div class="report-panel__header">
+      <h2>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+        Najprodavaniji artikli
+      </h2>
+    </div>
+    @if (topProducts().length > 0) {
+      <div class="report-list">
+        @for (product of topProducts(); track product.id; let index = $index) {
+          <article class="report-list__item">
+            <div>
+              <p class="report-list__title">{{ index + 1 }}. {{ product.name }}</p>
+              <p class="report-list__meta">{{ product.qty }} prodato</p>
+            </div>
+            <div class="report-list__metrics">
+              <strong>{{ formatCurrency(product.revenue) }} RSD</strong>
+              <span>+{{ formatCurrency(product.profit) }} profit</span>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="app-muted">Nema prodaja u izabranom periodu.</p>
+    }
+  </section>
+
+  @if (lowStock().length > 0) {
+    <section class="report-panel report-panel--warning app-card">
+      <div class="report-panel__header">
+        <h2>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="report-panel__icon--warning">
+            <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+          </svg>
+          Niske zalihe ({{ lowStock().length }})
+        </h2>
+      </div>
+      <div class="report-list">
+        @for (product of lowStock(); track product.id) {
+          <article class="report-list__item report-list__item--compact">
+            <span class="report-list__title">{{ product.name }}</span>
+            <strong class="report-list__danger">{{ product.stock }} / {{ product.lowStockThreshold }}</strong>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  @if (expiringProducts().length > 0) {
+    <section class="report-panel report-panel--warning app-card">
+      <div class="report-panel__header">
+        <h2>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="report-panel__icon--warning">
+            <path d="M8 2v4M16 2v4M3 10h18M21 8H3V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z" />
+          </svg>
+          Uskoro ističe rok ({{ expiringProducts().length }})
+        </h2>
+      </div>
+      <div class="report-list">
+        @for (entry of expiringProducts(); track entry.product.id) {
+          <article class="report-list__item report-list__item--compact">
+            <span class="report-list__title">{{ entry.product.name }}</span>
+            <strong class="report-list__warning">{{ entry.daysLeft }} dana</strong>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</section>

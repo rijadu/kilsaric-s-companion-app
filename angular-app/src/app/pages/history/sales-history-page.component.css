@@ -1,0 +1,263 @@
+.history-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.history-toolbar {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.history-search {
+  position: relative;
+  display: block;
+}
+
+.history-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+}
+
+.history-search__icon svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.history-search input {
+  width: 100%;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.95rem 0.75rem 2.4rem;
+  background: hsl(var(--card));
+  font-size: 0.875rem;
+}
+
+.history-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.history-filter-btn {
+  flex: 1;
+  border: 0;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  background: hsl(var(--secondary));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history-filter-btn--active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.status-banner {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+}
+
+.history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sale-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem 1rem;
+  border-radius: 1.15rem;
+  background: rgb(255 255 255 / 0.88);
+}
+
+.sale-card--refunded {
+  border-color: rgb(239 68 68 / 0.28);
+  opacity: 0.84;
+}
+
+.sale-card__top,
+.sale-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sale-card__badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sale-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.sale-card__badge--danger {
+  background: rgb(239 68 68 / 0.12);
+  color: #b91c1c;
+}
+
+.sale-card__payment,
+.sale-card__customer,
+.sale-card__discount,
+.sale-card__refund-note {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.sale-card__payment,
+.sale-card__customer,
+.sale-card__refund-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sale-card__badge svg,
+.sale-card__payment svg,
+.sale-card__customer svg,
+.sale-card__refund-note svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sale-items {
+  display: grid;
+  gap: 0.45rem;
+  padding-bottom: 0.1rem;
+  border-bottom: 1px solid rgb(229 231 235 / 0.95);
+}
+
+.sale-items__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  font-size: 0.9rem;
+}
+
+.sale-items__name {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.sale-items__discount {
+  color: #ca8a04;
+  font-size: 0.76rem;
+}
+
+.sale-card__footer {
+  padding-top: 0.05rem;
+}
+
+.sale-card__footer span {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.82rem;
+}
+
+.sale-card__footer strong {
+  font-size: 0.82rem;
+}
+
+.refund-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  border: 1px dashed rgb(203 213 225 / 0.95);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refund-trigger svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.refund-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.refund-box input {
+  flex: 1;
+  height: 2rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  background: hsl(var(--secondary));
+}
+
+.refund-box__confirm {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.refund-box__cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0.375rem;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+
+.refund-box__cancel svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

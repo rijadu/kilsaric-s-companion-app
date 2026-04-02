@@ -1,0 +1,163 @@
+<section class="app-page">
+  <header class="dashboard-header">
+    <div>
+      <h1 class="dashboard-header__title">Gvožđara</h1>
+      <p class="dashboard-header__subtitle">Pregled poslovanja</p>
+    </div>
+    <div class="dashboard-header__actions">
+      <a class="icon-button" routerLink="/daily-close" aria-label="Z-izveštaj">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" />
+          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+        </svg>
+      </a>
+      <a class="notification-bell" routerLink="/products" [queryParams]="{filter: 'low-stock'}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m1 0a2 2 0 0 0 4 0" />
+      </svg>
+      @if (notificationCount() > 0) {
+        <span class="notification-bell__badge">{{ notificationCount() }}</span>
+      }
+    </a>
+    </div>
+  </header>
+
+  <div class="period-row">
+    @for (entry of periods; track entry.key) {
+      <button
+        type="button"
+        class="period-button"
+        [class.period-button--active]="period() === entry.key"
+        (click)="setPeriod(entry.key)"
+      >
+        {{ entry.label }}
+      </button>
+    }
+  </div>
+
+  <section class="stats-grid">
+    @for (card of cards(); track card.title) {
+      <a class="stat-card app-card" [class.stat-card--success]="card.variant === 'success'" [routerLink]="card.route">
+        <div class="stat-card__icon" [class.stat-card__icon--success]="card.variant === 'success'">
+          @switch (cardIcon(card)) {
+            @case ('package') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+              </svg>
+            }
+            @case ('cash') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18v12H3zM7 10h.01M17 14h.01M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              </svg>
+            }
+            @case ('profit') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 16 10 10l4 4 6-8M20 8v6h-6" />
+              </svg>
+            }
+            @default {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
+              </svg>
+            }
+          }
+        </div>
+        <div>
+          <p class="stat-card__label">{{ card.title }}</p>
+          <p class="stat-card__value">{{ card.value }}</p>
+          <p class="stat-card__trend">{{ card.trend }}</p>
+        </div>
+      </a>
+    }
+  </section>
+
+  @if (summary().completedSales.length > 0) {
+    <section class="app-card section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="section-card__icon">
+            <path d="M3 3v18h18M7 16l4-4 4 4 4-4" />
+          </svg>
+          {{ summary().periodLabel }}
+        </h2>
+      </div>
+      <div class="summary-grid">
+        <article>
+          <span class="summary-grid__label">Gotovina</span>
+          <strong>{{ formatNumber(summary().cashTotal) }} RSD</strong>
+        </article>
+        <article>
+          <span class="summary-grid__label">Kartica</span>
+          <strong>{{ formatNumber(summary().cardTotal) }} RSD</strong>
+        </article>
+        <article>
+          <span class="summary-grid__label">Prodatih artikala</span>
+          <strong>{{ summary().soldItems }}</strong>
+        </article>
+        <article>
+          <span class="summary-grid__label">Prosečan račun</span>
+          <strong>{{ formatNumber(summary().averageReceipt) }} RSD</strong>
+        </article>
+      </div>
+    </section>
+  }
+
+  @if (recentSales().length > 0) {
+    <section class="history-preview">
+      <div class="section-card__header">
+        <h2 class="section-card__title">Poslednje prodaje</h2>
+      </div>
+      <div class="history-preview__list app-card">
+        @for (sale of recentSales(); track sale.id) {
+          <a class="history-preview__item" routerLink="/history">
+            <div class="history-preview__row">
+              <strong>{{ saleItemsLabel(sale.id) }}</strong>
+              <span>{{ formatNumber(sale.total) }}</span>
+            </div>
+            <span class="history-preview__meta">
+              {{ formatTime(sale.date) }}
+              @if (sale.customerName) {
+                · {{ sale.customerName }}
+              }
+            </span>
+          </a>
+        }
+      </div>
+      @if (summary().completedSales.length > 5) {
+        <a class="section-card__link" routerLink="/history">Vidi sve ({{ summary().completedSales.length }}) →</a>
+      }
+    </section>
+  }
+
+  @if (lowStockItems().length > 0) {
+    <section class="history-preview">
+      <div class="section-card__header">
+        <h2 class="section-card__title section-card__title--warning">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="section-card__icon section-card__icon--danger">
+            <path d="M12 4 3 20h18L12 4Zm0 5v4m0 4h.01" />
+          </svg>
+          Niske zalihe ({{ lowStockItems().length }})
+        </h2>
+      </div>
+      <div class="history-preview__list history-preview__list--warning app-card">
+        @for (product of lowStockItems(); track product.id) {
+          <a class="history-preview__item" [routerLink]="['/products/edit', product.id]">
+            <div class="history-preview__row">
+              <strong>{{ product.name }}</strong>
+              <span class="low-stock">{{ product.stock }} {{ product.unit === 'piece' ? 'kom' : product.unit }} (min {{ product.lowStockThreshold }})</span>
+            </div>
+            <span class="history-preview__meta">
+              {{ product.category }}
+              @if (product.subcategory) {
+                · {{ product.subcategory }}
+              }
+            </span>
+          </a>
+        }
+      </div>
+      @if (lowStockCount() > 4) {
+        <a class="section-card__link" routerLink="/products">Vidi sve ({{ lowStockCount() }}) →</a>
+      }
+    </section>
+  }
+</section>

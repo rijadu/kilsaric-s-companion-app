@@ -1,0 +1,125 @@
+<section class="app-page stock-page">
+  <header class="stock-header">
+    <button type="button" class="back-button" (click)="goBack()" aria-label="Nazad">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </button>
+    <div>
+      <h1>Stanje zaliha</h1>
+      <p>{{ products().length }} proizvoda · {{ lowStockCount() }} sa niskom zalihom</p>
+    </div>
+  </header>
+
+  <div class="stock-toolbar">
+    <label class="search-box">
+      <span class="search-box__icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        [ngModel]="search()"
+        (ngModelChange)="updateSearch($event)"
+        placeholder="Pretraga..."
+      />
+    </label>
+
+    <button
+      type="button"
+      class="low-button"
+      [class.low-button--active]="showLowOnly()"
+      (click)="toggleLowOnly()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 4 3 20h18L12 4Zm0 5v4m0 4h.01" />
+      </svg>
+      Niska zaliha
+    </button>
+  </div>
+
+  <section class="stock-table app-card">
+    <div class="stock-table__scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <button type="button" (click)="toggleSort('name')">
+                Proizvod
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="sort-icon"><path d="M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
+              </button>
+            </th>
+            <th class="th-right">
+              <button type="button" (click)="toggleSort('stock')">
+                Zaliha
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="sort-icon"><path d="M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
+              </button>
+            </th>
+            <th class="th-right th-hide-sm">
+              <button type="button" (click)="toggleSort('sellingPrice')">
+                Cena
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="sort-icon"><path d="M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>
+              </button>
+            </th>
+            <th class="th-action"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (product of products(); track product.id) {
+            <tr>
+              <td>
+                <div class="product-cell">
+                  <div class="product-cell__icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+                    </svg>
+                  </div>
+                  <div class="product-cell__copy">
+                    <p>{{ product.name }}</p>
+                    <span>{{ product.sku }} · {{ product.category }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <td class="td-right">
+                <span class="stock-value" [class.stock-value--danger]="product.stock <= product.lowStockThreshold">
+                  @if (product.stock <= product.lowStockThreshold) {
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 4 3 20h18L12 4Zm0 5v4m0 4h.01" />
+                    </svg>
+                  }
+                  {{ formatCurrency(product.stock) }}
+                </span>
+                <p>{{ unitLabels[product.unit] }} · min {{ product.lowStockThreshold }}</p>
+              </td>
+
+              <td class="td-right th-hide-sm">
+                <strong>{{ formatCurrency(product.sellingPrice) }} RSD</strong>
+                @if (product.bulkPrice) {
+                  <p class="price-note">vel: {{ formatCurrency(product.bulkPrice) }} RSD</p>
+                }
+                <p>nab: {{ formatCurrency(product.costPrice) }} · <span class="margin">{{ margin(product) }}%</span></p>
+              </td>
+
+              <td class="td-action">
+                <a [routerLink]="['/products/edit', product.id]" class="edit-button" aria-label="Izmeni proizvod">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                  </svg>
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">
+                <div class="empty-state">Nema rezultata</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

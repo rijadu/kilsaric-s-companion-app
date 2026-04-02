@@ -1,0 +1,411 @@
+<section class="app-page pos-page">
+  <header class="pos-header">
+    <h1>Prodaja</h1>
+    <a routerLink="/customers" class="pos-header__action" aria-label="Kupci">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <path d="M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm6.74-2.18a4 4 0 0 1 0 6.36M22 21v-2a4 4 0 0 0-3-3.87" />
+      </svg>
+    </a>
+  </header>
+
+  @if (pageMessage()) {
+    <section class="status-banner app-card">
+      <strong>Status</strong>
+      <span>{{ pageMessage() }}</span>
+    </section>
+  }
+
+  <section class="search-row">
+    <label class="search-box app-card">
+      <span class="search-box__icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        [ngModel]="search()"
+        (ngModelChange)="updateSearch($event)"
+        (keydown.enter)="submitSearch()"
+        placeholder="Ime, šifra ili barkod..."
+      />
+
+      @if (searchResults().length > 0) {
+        <div class="search-results app-card">
+          @for (product of searchResults(); track product.id) {
+            <button type="button" class="search-result" (click)="addToCart(product)">
+              <div class="search-result__name">
+                <strong>{{ product.name }}</strong>
+                <small class="app-muted">{{ product.sku }}</small>
+              </div>
+              <div class="search-result__price">
+                <strong class="search-result__main-price">{{ formatCurrency(product.sellingPrice) }}</strong>
+                @if (product.bulkPrice) {
+                  <small class="search-result__bulk">VP {{ formatCurrency(product.bulkPrice) }} ≥{{ product.bulkMinQty }}</small>
+                }
+                <small class="app-muted">/{{ unitLabels[product.unit] }}</small>
+              </div>
+            </button>
+          }
+        </div>
+      }
+    </label>
+
+    <button
+      type="button"
+      class="scanner-toggle"
+      [class.scanner-toggle--active]="scanning()"
+      (click)="scanning() ? stopScanner() : startScanner()"
+    >
+      @if (scanning()) {
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="scanner-toggle__icon">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="scanner-toggle__icon">
+          <path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M7 7h10M7 12h10M7 17h6" />
+        </svg>
+      }
+    </button>
+  </section>
+
+  @if (scanning()) {
+    <section class="scanner-card app-card">
+      <div class="scanner-card__frame" [id]="scannerRegionId"></div>
+      <p class="scanner-card__caption">Skeniraj artikle, automatski se dodaju u korpu.</p>
+    </section>
+  }
+
+  <section class="customer-card">
+    @if (selectedCustomer()) {
+      <div class="customer-card__selected">
+        <div>
+          <strong>{{ selectedCustomer()!.name }}</strong>
+          @if (selectedCustomer()!.defaultDiscount) {
+            <small class="app-muted">
+              Popust: {{ customerDiscountLabel(selectedCustomer()!) }}
+            </small>
+          }
+        </div>
+        <button type="button" class="customer-card__clear" (click)="clearSelectedCustomer()" aria-label="Ukloni kupca">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+      </div>
+    } @else {
+      <button type="button" class="customer-card__picker" (click)="toggleCustomerPicker()">
+        <span class="customer-card__picker-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8h.01" />
+          </svg>
+        </span>
+        <span class="customer-card__picker-label">Izaberi kupca (opciono)</span>
+        <span class="customer-card__picker-chevron">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+    }
+
+    @if (showCustomerPicker() && !selectedCustomer()) {
+      <div class="customer-picker">
+        <input
+          type="text"
+          [ngModel]="customerSearch()"
+          (ngModelChange)="updateCustomerSearch($event)"
+          placeholder="Pretraži kupce..."
+        />
+
+        <div class="customer-picker__list">
+          @for (customer of filteredCustomers(); track customer.id) {
+            <button type="button" class="customer-picker__item" (click)="selectCustomer(customer)">
+              <div>
+                <strong>{{ customer.name }}</strong>
+                <small class="app-muted">{{ customer.phone || customer.email || 'Bez kontakta' }}</small>
+              </div>
+              @if (customer.defaultDiscount) {
+                <span class="app-badge app-badge--warning">{{ customerDiscountLabel(customer) }}</span>
+              }
+            </button>
+          } @empty {
+            <p class="app-muted">Nema rezultata.</p>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (cart().length === 0 && !lastSale()) {
+    <section class="empty-state">
+      <div class="empty-state__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
+        </svg>
+      </div>
+      <strong>Korpa je prazna</strong>
+      <p class="app-muted">Pretražite, skenirajte ili izaberite artikal.</p>
+    </section>
+
+    <section class="suggested-products">
+      <p class="app-section-title">Česti artikli</p>
+      <div class="suggested-products__grid">
+        @for (product of suggestedProducts(); track product.id) {
+          <button type="button" class="suggested-product app-card" (click)="addToCart(product)">
+            <span class="suggested-product__category app-muted">{{ product.category }}</span>
+            <strong>{{ product.name }}</strong>
+            <span class="app-muted">{{ formatCurrency(product.sellingPrice) }} RSD/{{ unitLabels[product.unit] }}</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  @if (cart().length > 0) {
+    <section class="cart-list">
+      @for (item of cart(); track item.product.id) {
+        <article class="cart-item app-card">
+          <div class="cart-item__head">
+            <div class="cart-item__info">
+              <strong>{{ item.product.name }}</strong>
+              <p class="app-muted">
+                {{ formatCurrency(item.product.sellingPrice) }} RSD/{{ unitLabels[item.product.unit] }}
+                @if (item.product.bulkPrice && item.product.bulkMinQty && item.quantity >= item.product.bulkMinQty) {
+                  <span class="cart-item__bulk"> → VP {{ formatCurrency(item.product.bulkPrice) }}</span>
+                }
+              </p>
+            </div>
+            <div class="cart-item__head-actions">
+              <button
+                type="button"
+                class="cart-item__icon-btn"
+                [class.cart-item__icon-btn--warning]="item.discount"
+                (click)="openItemDiscount(item)"
+                aria-label="Popust"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 9h.01M15 15h.01M19 5H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 0 4v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2 2 2 0 0 0 0-4V7a2 2 0 0 0-2-2Z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="cart-item__icon-btn cart-item__icon-btn--danger"
+                (click)="removeItem(item.product.id)"
+                aria-label="Ukloni"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          @if (editingItemDiscountId() === item.product.id) {
+            <div class="discount-editor">
+              <button type="button" class="secondary-button" (click)="toggleItemDiscountType()">
+                {{ itemDiscountType() === 'percent' ? '%' : 'RSD' }}
+              </button>
+              <input
+                type="text"
+                [ngModel]="itemDiscountInput()"
+                (ngModelChange)="updateItemDiscountInput($event)"
+                (keydown.enter)="submitItemDiscount(item.product.id)"
+                placeholder="0"
+              />
+              <button type="button" class="primary-button" (click)="submitItemDiscount(item.product.id)">OK</button>
+              <button type="button" class="cart-item__link" (click)="closeItemDiscount()">Zatvori</button>
+            </div>
+          }
+
+          @if (item.discount && editingItemDiscountId() !== item.product.id) {
+            <div class="cart-item__discount-badge">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-item__tag-icon">
+                <path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              Popust: {{ item.discount.type === 'percent' ? item.discount.value + '%' : formatCurrency(item.discount.value) + ' RSD' }}
+            </div>
+          }
+
+          <div class="cart-item__footer">
+            <div class="qty-controls">
+              <button type="button" (click)="updateQuantity(item.product.id, -1)">-</button>
+              <input
+                type="text"
+                [ngModel]="item.quantity"
+                (ngModelChange)="setQuantity(item.product.id, $event)"
+              />
+              <button type="button" (click)="updateQuantity(item.product.id, 1)">+</button>
+              <span class="app-muted">{{ unitLabels[item.product.unit] }}</span>
+            </div>
+
+            <div class="cart-item__total">
+              @if (item.discount) {
+                <small class="app-muted cart-item__striked">{{ formatCurrency(itemBaseTotal(item)) }}</small>
+              }
+              <strong>{{ formatCurrency(itemTotal(item)) }} RSD</strong>
+            </div>
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="cart-discount app-card">
+      @if (showCartDiscount()) {
+        <div class="discount-editor">
+          <button type="button" class="secondary-button" (click)="toggleCartDiscountType()">
+            {{ cartDiscountType() === 'percent' ? '%' : 'RSD' }}
+          </button>
+          <input
+            type="text"
+            [ngModel]="cartDiscountInput()"
+            (ngModelChange)="updateCartDiscountInput($event)"
+            (keydown.enter)="submitCartDiscount()"
+            placeholder="0"
+          />
+          <button type="button" class="primary-button" (click)="submitCartDiscount()">OK</button>
+          <button type="button" class="cart-item__link" (click)="clearCartDiscount()">Ukloni</button>
+        </div>
+      } @else {
+        <button type="button" class="cart-discount__button" (click)="openCartDiscount()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="cart-discount__icon">
+            <path d="M9 9h.01M15 15h.01M19 5H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 0 4v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2 2 2 0 0 0 0-4V7a2 2 0 0 0-2-2Z" />
+          </svg>
+          @if (cartDiscount()) {
+            Popust na račun: {{ cartDiscount()!.type === 'percent' ? cartDiscount()!.value + '%' : formatCurrency(cartDiscount()!.value) + ' RSD' }}
+          } @else {
+            Dodaj popust na ceo račun
+          }
+        </button>
+      }
+    </section>
+  }
+
+  @if (cart().length > 0) {
+    <section class="checkout-bar app-card">
+      <div class="checkout-bar__summary">
+        <span>Ukupno</span>
+        <div>
+          @if (cartDiscount()) {
+            <small class="app-muted cart-item__striked">{{ formatCurrency(subtotal()) }} RSD</small>
+          }
+          <strong>{{ formatCurrency(total()) }} RSD</strong>
+        </div>
+      </div>
+
+      @if (!showCheckout()) {
+        <button type="button" class="primary-button" (click)="toggleCheckout()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
+            <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
+          </svg>
+          Naplati ({{ cart().length }} stavki)
+        </button>
+      } @else {
+        <div class="checkout-bar__actions">
+          <button type="button" class="primary-button primary-button--success" (click)="completeCheckout('cash')">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
+              <path d="M2 9h20v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9ZM2 9V7a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2M12 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+            </svg>
+            Gotovina
+          </button>
+          <button type="button" class="primary-button primary-button--dark" (click)="completeCheckout('card')">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
+              <path d="M2 8h20M2 12h4M6 16h4M2 5h20a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+            </svg>
+            Kartica
+          </button>
+          <button type="button" class="secondary-button checkout-bar__back-btn" (click)="toggleCheckout()">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      }
+    </section>
+  }
+
+  @if (lastSale() && cart().length === 0) {
+    <section class="sale-result app-card">
+      <div>
+        <h2>Poslednji račun</h2>
+        <p class="app-muted">
+          {{ lastSale()!.receiptNumber }} · {{ formatDate(lastSale()!.date) }} {{ formatTime(lastSale()!.date) }}
+          @if (lastSale()!.customerName) {
+            · {{ lastSale()!.customerName }}
+          }
+        </p>
+      </div>
+
+      <div class="sale-result__actions">
+        <button type="button" class="secondary-button" (click)="printBrowser()">Browser print</button>
+        @if (serialSupported) {
+          <button type="button" class="primary-button" (click)="printThermal()">Termički štampač</button>
+        }
+        <button type="button" class="secondary-button" (click)="clearLastSale()">Zatvori</button>
+      </div>
+    </section>
+  }
+
+  @if (lastSale()) {
+    <section class="receipt-print hidden print:block">
+      <div class="receipt-print__body">
+        <div class="receipt-print__center">
+          <div class="receipt-print__title">GVOZDARA</div>
+          <div>Ulica Primer 1, Beograd</div>
+          <div>Tel: 011/123-4567</div>
+        </div>
+
+        <div class="receipt-print__divider"></div>
+
+        <div class="receipt-print__meta">
+          <span>Račun: {{ lastSale()!.receiptNumber }}</span>
+          <span>{{ formatDate(lastSale()!.date) }} {{ formatTime(lastSale()!.date) }}</span>
+        </div>
+
+        <div class="receipt-print__divider"></div>
+
+        @for (item of lastSale()!.items; track item.product.id) {
+          <div class="receipt-print__item">
+            <div class="receipt-print__item-name">{{ item.product.name }}</div>
+            <div class="receipt-print__item-meta">
+              <span>{{ item.product.sku }}</span>
+              <span>{{ item.quantity }}{{ unitLabels[item.product.unit] }}</span>
+              <span>{{ formatCurrency(item.product.sellingPrice) }}</span>
+              <span>{{ formatCurrency(itemTotal(item)) }}</span>
+            </div>
+            @if (item.discount) {
+              <div class="receipt-print__item-discount">
+                Popust: {{ item.discount.type === 'percent' ? item.discount.value + '%' : formatCurrency(item.discount.value) + ' RSD' }}
+              </div>
+            }
+          </div>
+        }
+
+        <div class="receipt-print__divider"></div>
+
+        @if (lastSale()!.discount) {
+          <div class="receipt-print__summary-row">
+            <span>Međuzbir</span>
+            <span>{{ formatCurrency(lastSale()!.subtotal) }} RSD</span>
+          </div>
+          <div class="receipt-print__summary-row">
+            <span>Popust</span>
+            <span>-{{ formatCurrency(lastSale()!.subtotal - lastSale()!.total) }} RSD</span>
+          </div>
+        }
+
+        <div class="receipt-print__summary-row receipt-print__summary-row--total">
+          <span>UKUPNO</span>
+          <span>{{ formatCurrency(lastSale()!.total) }} RSD</span>
+        </div>
+
+        <div class="receipt-print__summary-row">
+          <span>Plaćanje</span>
+          <span>{{ lastSale()!.method === 'cash' ? 'Gotovina' : 'Kartica' }}</span>
+        </div>
+
+        <div class="receipt-print__divider"></div>
+        <div class="receipt-print__center">Hvala na kupovini!</div>
+      </div>
+    </section>
+  }
+</section>

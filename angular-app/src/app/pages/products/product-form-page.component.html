@@ -1,0 +1,174 @@
+<section class="app-page product-form-page">
+  <header class="product-form-header">
+    <button type="button" class="back-button" (click)="goBack()" aria-label="Nazad">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </button>
+    <h1>{{ isEdit() ? 'Izmeni proizvod' : 'Novi proizvod' }}</h1>
+  </header>
+
+  @if (pageMessage()) {
+    <section class="status-banner app-card">
+      <strong>Status</strong>
+      <span>{{ pageMessage() }}</span>
+    </section>
+  }
+
+  <form class="product-form" [formGroup]="form" (ngSubmit)="save()">
+    <section class="form-section app-card">
+      <h2>Osnovni podaci</h2>
+      <label class="field">
+        <span>Naziv proizvoda *</span>
+        <input type="text" formControlName="name" placeholder="npr. Vijci za drvo 5x50mm" />
+      </label>
+
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Šifra *</span>
+          <input class="field-input--mono" type="text" formControlName="sku" placeholder="VD-5050" />
+        </label>
+        <label class="field">
+          <span>Barkod</span>
+          <input class="field-input--mono" type="text" formControlName="barcode" placeholder="8600001..." />
+        </label>
+      </div>
+
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Kategorija</span>
+          <select formControlName="category">
+            <option value="">Izaberi</option>
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span>Podkategorija</span>
+          <select formControlName="subcategory">
+            <option value="">Izaberi</option>
+            @for (subcategory of activeSubcategories(); track subcategory) {
+              <option [value]="subcategory">{{ subcategory }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Brend</span>
+        <select formControlName="brand">
+          <option value="">Izaberi</option>
+          @for (brand of brands; track brand) {
+            <option [value]="brand">{{ brand }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Opis</span>
+        <textarea formControlName="description" rows="2" placeholder="Kratak opis proizvoda..."></textarea>
+      </label>
+    </section>
+
+    <section class="form-section app-card">
+      <h2>Cene i jedinice</h2>
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Nabavna cena (RSD)</span>
+          <input type="number" formControlName="costPrice" placeholder="0" />
+        </label>
+        <label class="field">
+          <span>Prodajna cena (RSD) *</span>
+          <input type="number" formControlName="sellingPrice" placeholder="0" />
+        </label>
+      </div>
+
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Veleprodajna cena (RSD)</span>
+          <input type="number" formControlName="bulkPrice" placeholder="0" />
+        </label>
+        <label class="field">
+          <span>Min. količina za veleprodaju</span>
+          <input type="number" formControlName="bulkMinQty" placeholder="npr. 100" />
+        </label>
+      </div>
+
+      @if (marginPreview()) {
+        <div class="preview-bar">
+          Marža: {{ marginPreview()!.margin.toFixed(1) }}% · Profit:
+          {{ formatCurrency(marginPreview()!.profit) }} RSD
+          @if (marginPreview()!.bulkMargin !== null) {
+            · VP marža: {{ marginPreview()!.bulkMargin!.toFixed(1) }}%
+          }
+        </div>
+      }
+
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Jedinica</span>
+          <select formControlName="unit">
+            @for (unit of units; track unit.value) {
+              <option [value]="unit.value">{{ unit.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span>Pakovanje</span>
+          <input type="number" formControlName="packSize" placeholder="100" />
+        </label>
+      </div>
+    </section>
+
+    <section class="form-section app-card">
+      <h2>Zalihe</h2>
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Trenutno stanje</span>
+          <input type="number" formControlName="stock" placeholder="0" />
+        </label>
+        <label class="field">
+          <span>Minimalna zaliha</span>
+          <input type="number" formControlName="lowStockThreshold" placeholder="0" />
+        </label>
+      </div>
+
+      <label class="field-toggle">
+        <span>Aktivan proizvod</span>
+        <button
+          type="button"
+          class="switch-button"
+          [class.switch-button--active]="form.controls.status.value === 'active'"
+          [attr.aria-pressed]="form.controls.status.value === 'active'"
+          (click)="setStatusActive(form.controls.status.value !== 'active')"
+        >
+          <span class="switch-button__thumb"></span>
+        </button>
+      </label>
+
+      <div class="form-grid form-grid--two">
+        <label class="field">
+          <span>Rok trajanja</span>
+          <input type="date" formControlName="expiryDate" />
+        </label>
+        <label class="field">
+          <span>Garancija (meseci)</span>
+          <input type="number" formControlName="warrantyMonths" placeholder="0" />
+        </label>
+      </div>
+    </section>
+
+    @if (submitted() && form.invalid) {
+      <p class="form-error">Naziv, šifra i prodajna cena su obavezni.</p>
+    }
+
+    <button type="submit" class="primary-submit">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 21h14a1 1 0 0 0 1-1V7.5L15.5 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1Z" />
+        <path d="M15 21v-6H9v6M9 3v5h6" />
+      </svg>
+      {{ isEdit() ? 'Sačuvaj izmene' : 'Dodaj proizvod' }}
+    </button>
+  </form>
+</section>

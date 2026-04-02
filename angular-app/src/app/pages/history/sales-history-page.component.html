@@ -1,0 +1,139 @@
+<section class="app-page">
+  <header class="history-header">
+    <h1>Istorija prodaje</h1>
+  </header>
+
+  <div class="history-toolbar">
+    <label class="history-search">
+      <span class="history-search__icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" /></svg>
+      </span>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="updateSearch($event)"
+        placeholder="Pretraga po artiklu ili kupcu..."
+      />
+    </label>
+    <div class="history-filters">
+      <button type="button" class="history-filter-btn" [class.history-filter-btn--active]="dateFilter() === 'today'" (click)="setDateFilter('today')">Danas</button>
+      <button type="button" class="history-filter-btn" [class.history-filter-btn--active]="dateFilter() === 'week'" (click)="setDateFilter('week')">Nedelja</button>
+      <button type="button" class="history-filter-btn" [class.history-filter-btn--active]="dateFilter() === 'all'" (click)="setDateFilter('all')">Sve</button>
+    </div>
+  </div>
+
+  @if (pageMessage()) {
+    <section class="status-banner app-card">
+      <strong>Status</strong>
+      <span>{{ pageMessage() }}</span>
+    </section>
+  }
+
+  <div class="history-list">
+    @if (filteredSales().length === 0) {
+      <p class="app-muted" style="text-align:center;padding:2rem 0">Nema rezultata.</p>
+    }
+    @for (sale of filteredSales(); track sale.id) {
+      <article class="sale-card app-card" [class.sale-card--refunded]="sale.status === 'refunded'">
+        <div class="sale-card__top">
+          <div class="sale-card__badge-row">
+            <span class="sale-card__badge">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16M7 4v6M17 4v6M5 11h14v9H5z" />
+              </svg>
+              #{{ sale.id }}
+            </span>
+            @if (sale.status === 'refunded') {
+              <span class="sale-card__badge sale-card__badge--danger">STORNO</span>
+            }
+          </div>
+          <span class="sale-card__payment">
+            @if (sale.paymentMethod === 'cash') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18v12H3zM7 10h.01M17 14h.01M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7h18v10H3zM3 10h18M7 14h4" />
+              </svg>
+            }
+            {{ paymentLabel(sale.paymentMethod) }}
+          </span>
+        </div>
+
+        @if (sale.customerName) {
+          <p class="sale-card__customer">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11" />
+            </svg>
+            {{ sale.customerName }}
+          </p>
+        }
+
+        <div class="sale-items">
+          @for (item of sale.items; track $index) {
+            <div class="sale-items__row">
+              <span class="sale-items__name">
+                {{ item.product.name }} × {{ item.quantity }}
+                @if (item.discount) {
+                  <span class="sale-items__discount">
+                    (-{{ item.discount.type === 'percent' ? item.discount.value + '%' : formatCurrency(item.discount.value) + ' RSD' }})
+                  </span>
+                }
+              </span>
+              <strong>{{ formatCurrency(getItemTotal(item)) }} RSD</strong>
+            </div>
+          }
+        </div>
+
+        @if (sale.discount) {
+          <p class="sale-card__discount">
+            Popust na račun:
+            {{ sale.discount.type === 'percent' ? sale.discount.value + '%' : formatCurrency(sale.discount.value) + ' RSD' }}
+          </p>
+        }
+
+        <div class="sale-card__footer">
+          <span>{{ formatDate(sale.date) }}</span>
+          <strong>{{ formatCurrency(sale.total) }} RSD</strong>
+        </div>
+
+        @if (sale.status === 'refunded' && sale.refundDate) {
+          <p class="sale-card__refund-note">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 9v4M12 17h.01M10.29 3.86l-8.3 14.4A1 1 0 0 0 2.86 20h18.28a1 1 0 0 0 .87-1.74l-8.3-14.4a1 1 0 0 0-1.72 0Z" />
+            </svg>
+            Stornirano: {{ formatDate(sale.refundDate, false) }}
+            @if (sale.refundReason) {
+              - {{ sale.refundReason }}
+            }
+          </p>
+        }
+
+        @if (sale.status === 'completed') {
+          @if (refundingId() === sale.id) {
+            <div class="refund-box">
+              <input
+                type="text"
+                [ngModel]="refundReason()"
+                (ngModelChange)="updateRefundReason($event)"
+                placeholder="Razlog storna (opciono)"
+              />
+              <button type="button" class="refund-box__confirm" (click)="confirmRefund(sale.id)">
+                Potvrdi
+              </button>
+              <button type="button" class="refund-box__cancel" (click)="cancelRefund()" aria-label="Otkaži">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="refund-trigger" (click)="startRefund(sale.id)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 .5-3M3 4v5h5" /></svg>
+              Storniraj
+            </button>
+          }
+        }
+      </article>
+    }
+  </div>
+</section>

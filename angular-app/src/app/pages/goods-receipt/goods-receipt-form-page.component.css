@@ -1,0 +1,266 @@
+.form-header {
+  @apply flex items-center justify-between gap-4;
+}
+
+.form-header h1 {
+  @apply m-0 text-[1.25rem] font-bold;
+  letter-spacing: -0.02em;
+}
+
+.form-header .secondary-button {
+  @apply min-h-[2.5rem] rounded-xl px-3 text-sm;
+}
+
+.status-banner,
+.receipt-form {
+  @apply grid gap-4 p-4;
+}
+
+.receipt-form input,
+.receipt-item input,
+.receipt-search input {
+  @apply w-full rounded-2xl border border-input bg-background px-4 py-3;
+}
+
+.receipt-scanner {
+  @apply overflow-hidden border-0 bg-accent p-0;
+}
+
+.receipt-scanner__live {
+  @apply relative;
+}
+
+.receipt-scanner__region {
+  @apply min-h-[200px] bg-accent;
+}
+
+.receipt-scanner__stop {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(4px);
+  color: hsl(var(--foreground));
+}
+
+.receipt-scanner__stop svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.receipt-scanner__idle {
+  @apply flex w-full items-center justify-center gap-2 border-0 bg-accent py-6 text-sm font-medium text-accent-foreground/70;
+}
+
+.receipt-scanner__idle svg,
+.receipt-search__icon svg {
+  @apply h-5 w-5;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Supplier autocomplete ────────────────────────────────────────────── */
+
+.supplier-autocomplete {
+  @apply relative;
+}
+
+.supplier-autocomplete__dropdown {
+  @apply absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-2xl border border-border p-0;
+  background: hsl(var(--background));
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.1);
+}
+
+.supplier-autocomplete__item {
+  @apply flex w-full items-center justify-between gap-4 border-b border-border px-4 py-3 text-left text-sm last:border-b-0;
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  color: hsl(var(--foreground));
+}
+
+.supplier-autocomplete__item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* ── Search ──────────────────────────────────────────────────────────── */
+
+.receipt-search {
+  @apply relative;
+}
+
+.receipt-search__icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground;
+}
+
+.receipt-search__results {
+  @apply absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden;
+}
+
+.receipt-search__item {
+  @apply flex w-full items-center justify-between gap-4 border-b border-border px-4 py-3 text-left last:border-b-0;
+}
+
+.receipt-search input {
+  @apply pl-10;
+}
+
+/* ── Form items ──────────────────────────────────────────────────────── */
+
+.receipt-items {
+  @apply grid gap-3;
+}
+
+.receipt-item {
+  @apply grid gap-3 rounded-2xl border border-border bg-white/90 p-4;
+}
+
+.receipt-item__header {
+  @apply flex items-start justify-between gap-3;
+}
+
+.receipt-item__name {
+  @apply text-sm font-semibold leading-snug;
+}
+
+.receipt-item__qty-row {
+  @apply flex items-center justify-between gap-3;
+}
+
+.receipt-item__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.receipt-item__field {
+  @apply grid gap-1;
+}
+
+.receipt-item__label {
+  @apply text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground;
+}
+
+.receipt-item__price-input {
+  @apply w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm;
+  padding-left: 0.75rem !important;
+  padding-right: 0.5rem !important;
+  border-radius: 0.75rem !important;
+}
+
+.receipt-item__footer {
+  @apply flex items-center justify-between gap-2 border-t border-border pt-2;
+}
+
+.receipt-item__margin {
+  @apply text-sm font-semibold text-muted-foreground;
+}
+
+.receipt-item__margin--positive {
+  @apply text-green-600;
+}
+
+/* ── Qty +/- controls ────────────────────────────────────────────────── */
+
+.receipt-qty {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.receipt-qty__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.6rem;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: background 0.12s;
+}
+
+.receipt-qty__btn:hover {
+  background: hsl(var(--accent));
+}
+
+.receipt-qty__btn svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.receipt-qty__input {
+  width: 4rem !important;
+  padding: 0.4rem 0.25rem !important;
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
+  border-radius: 0.6rem !important;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.receipt-item__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: hsl(var(--destructive));
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.receipt-item__remove:hover {
+  background: hsl(var(--destructive) / 0.08);
+}
+
+.receipt-item__remove svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.receipt-total {
+  @apply flex items-center justify-between gap-4;
+}
+
+@media (max-width: 480px) {
+  .receipt-item__controls {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+}

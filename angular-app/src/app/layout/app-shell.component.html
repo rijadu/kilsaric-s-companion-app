@@ -1,0 +1,67 @@
+<div class="shell">
+  @if (loading()) {
+    <div class="shell__loading">
+      <span class="shell__loading-spinner"></span>
+      <span>Učitavanje...</span>
+    </div>
+  }
+  @if (error()) {
+    <div class="shell__error">{{ error() }}</div>
+  }
+  <main class="shell__content">
+    <router-outlet />
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav__inner">
+      @for (item of navItems; track item.path) {
+        <a
+          class="bottom-nav__link"
+          [class.bottom-nav__link--scanner]="item.emphasis"
+          [routerLink]="item.path"
+          routerLinkActive="bottom-nav__link--active"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        >
+          @if (item.emphasis) {
+            <span class="bottom-nav__scanner-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
+              </svg>
+            </span>
+          } @else {
+            <span class="bottom-nav__icon">
+              @switch (item.path) {
+                @case ('/') {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 11.5 12 4l9 7.5M5 10v9h14v-9" />
+                  </svg>
+                }
+                @case ('/products') {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+                  </svg>
+                }
+                @case ('/goods-receipt') {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5M16 16h6m-3-3v6" />
+                  </svg>
+                }
+                @case ('/history') {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2" />
+                  </svg>
+                }
+                @default {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16M4 12h16M4 19h16" />
+                  </svg>
+                }
+              }
+            </span>
+          }
+          <span class="bottom-nav__label">{{ item.label }}</span>
+        </a>
+      }
+    </div>
+  </nav>
+</div>

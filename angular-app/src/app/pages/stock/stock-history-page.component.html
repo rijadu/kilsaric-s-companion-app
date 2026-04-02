@@ -1,0 +1,80 @@
+<section class="app-page">
+  <header class="stock-history-header">
+    <div class="stock-history-header__title">
+      <button type="button" class="stock-history-header__back" (click)="goBack()" aria-label="Nazad">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <h1>Istorija zaliha</h1>
+    </div>
+  </header>
+
+  <div class="stock-history-filters">
+    <span class="stock-history-filters__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 5h16l-6 7v5l-4 2v-7L4 5Z" />
+      </svg>
+    </span>
+    @for (option of filterOptions; track option) {
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip--active]="filter() === option"
+        (click)="setFilter(option)"
+      >
+        {{ option === 'all' ? 'Sve' : typeLabels[option] }}
+      </button>
+    }
+  </div>
+
+  <div class="stock-history-list">
+    @for (change of filteredChanges(); track change.id) {
+      <article class="stock-change app-card">
+        <div class="stock-change__top">
+          <div class="stock-change__lead">
+            <span [class]="iconClass(change.type)" aria-hidden="true">
+              @switch (change.type) {
+                @case ('sale') {
+                  <svg viewBox="0 0 24 24"><path d="m8 16 8-8M8 8h8v8" /></svg>
+                }
+                @case ('receipt') {
+                  <svg viewBox="0 0 24 24"><path d="m8 8 8 8M8 16h8V8" /></svg>
+                }
+                @case ('correction') {
+                  <svg viewBox="0 0 24 24"><path d="m12 4 8 8-8 8M4 12h16" /></svg>
+                }
+                @case ('refund') {
+                  <svg viewBox="0 0 24 24"><path d="m16 8-8 8M8 8h8v8" /></svg>
+                }
+                @case ('inventory') {
+                  <svg viewBox="0 0 24 24"><path d="M9 5H5v14h14v-4M9 9h10M9 13h6M15 3l6 6" /></svg>
+                }
+              }
+            </span>
+            <div>
+            <p class="stock-change__title">{{ change.productName }}</p>
+            <p class="app-muted">
+              {{ typeLabels[change.type] }} · {{ formatDate(change.date) }}
+            </p>
+            @if (change.note) {
+              <p class="stock-change__note">{{ change.note }}</p>
+            }
+            </div>
+          </div>
+          <div class="stock-change__summary">
+            <strong [class]="quantityClass(change.quantity)">
+              {{ change.quantity > 0 ? '+' : '' }}{{ change.quantity }}
+            </strong>
+            <span class="app-muted">{{ change.previousStock }} -> {{ change.newStock }}</span>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <section class="app-card empty-state">
+        <strong>Nema promena za prikaz</strong>
+        <span class="app-muted">Promenite filter ili evidentirajte novu promenu zaliha.</span>
+      </section>
+    }
+  </div>
+</section>

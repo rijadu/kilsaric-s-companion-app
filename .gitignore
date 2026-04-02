@@ -1,3 +1,10 @@
+# Backend secrets
+backend/.env
+
+# Temp / generated files
+.tmp/
+ANGULAR_MIGRATION.md
+
 # Logs
 logs
 *.log

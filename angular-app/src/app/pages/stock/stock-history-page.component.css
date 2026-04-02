@@ -1,0 +1,152 @@
+.stock-history-header__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stock-history-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.stock-history-header__back,
+.stock-history-filters__icon,
+.stock-change__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stock-history-header__back {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.stock-history-header__back svg,
+.stock-history-filters__icon svg,
+.stock-change__icon svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stock-history-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.stock-history-filters__icon {
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.stock-history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.stock-change,
+.empty-state {
+  padding: 1rem;
+}
+
+.stock-change {
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.9);
+}
+
+.stock-change__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stock-change__lead {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.stock-change__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.stock-change__icon--sale,
+.stock-change__icon--refund {
+  background: rgb(239 68 68 / 0.1);
+  color: #ef4444;
+}
+
+.stock-change__icon--receipt {
+  background: rgb(34 197 94 / 0.1);
+  color: #22c55e;
+}
+
+.stock-change__icon--correction {
+  background: rgb(251 191 36 / 0.16);
+  color: #f59e0b;
+}
+
+.stock-change__icon--inventory {
+  background: rgb(226 232 240 / 0.9);
+  color: hsl(var(--muted-foreground));
+}
+
+.stock-change__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.stock-change__note {
+  margin: 0.35rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+.stock-change__summary {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.stock-change__qty {
+  font-size: 1rem;
+}
+
+.stock-change__qty--positive {
+  color: #15803d;
+}
+
+.stock-change__qty--negative {
+  color: #b91c1c;
+}
+
+@media (max-width: 540px) {
+  .stock-change__top {
+    flex-direction: column;
+  }
+
+  .stock-change__lead {
+    align-items: flex-start;
+  }
+
+  .stock-change__summary {
+    justify-items: start;
+  }
+}

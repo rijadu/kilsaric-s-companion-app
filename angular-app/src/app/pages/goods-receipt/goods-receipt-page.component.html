@@ -1,0 +1,117 @@
+<section class="app-page">
+  <header class="goods-header">
+    <h1>Nabavka</h1>
+    <div class="goods-header__actions">
+      <a routerLink="/suppliers" class="icon-button" aria-label="Dobavljači">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3m0 0h5l2 3v4h-7m0-7H7M20 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-9 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+        </svg>
+      </a>
+      <a routerLink="/goods-receipt/new" class="icon-button icon-button--primary" aria-label="Nova nabavka">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  @if (savedMessage()) {
+    <section class="status-banner app-card">
+      <span>{{ savedMessage() }}</span>
+    </section>
+  }
+
+  @if (receipts().length === 0) {
+    <div class="empty-state">
+      <p>Nema evidentiranih nabavki.</p>
+    </div>
+  } @else {
+    <div class="receipt-history">
+      <div class="receipt-history__toolbar">
+        <div class="receipt-history__search">
+          <span class="receipt-history__search-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            [ngModel]="historySearch()"
+            (ngModelChange)="updateHistorySearch($event)"
+            placeholder="Pretraži nabavke..."
+          />
+        </div>
+        <div class="receipt-history__filters">
+          @for (f of dateFilters; track f.key) {
+            <button
+              type="button"
+              class="receipt-history__filter-btn"
+              [class.receipt-history__filter-btn--active]="dateFilter() === f.key"
+              (click)="setDateFilter(f.key)"
+            >{{ f.label }}</button>
+          }
+        </div>
+      </div>
+
+      @if (groupedReceipts().length === 0) {
+        <p class="app-muted">Nema rezultata za pretragu.</p>
+      }
+
+      @for (group of groupedReceipts(); track group.date) {
+        <p class="receipt-history__label">{{ group.date }}</p>
+        @for (receipt of group.items; track receipt.id) {
+          <article class="receipt-history__card app-card">
+            <button type="button" class="receipt-history__header receipt-history__toggle" (click)="toggleExpanded(receipt.id)">
+              <div>
+                <p class="receipt-history__title">{{ receipt.supplier }}</p>
+                <p class="app-muted">{{ formatTime(receipt.date) }} · {{ receipt.items.length }} art.</p>
+              </div>
+              <div class="receipt-history__header-right">
+                <strong>{{ formatCurrency(receipt.totalCost) }} RSD</strong>
+                <button type="button" class="receipt-history__edit" (click)="$event.stopPropagation(); editReceipt(receipt.id)" aria-label="Izmeni prijem robe">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>
+                  </svg>
+                </button>
+                <svg class="receipt-history__chevron" [class.receipt-history__chevron--open]="expandedReceiptId() === receipt.id" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </div>
+            </button>
+
+            @if (receipt.note) {
+              <p class="receipt-history__note">{{ receipt.note }}</p>
+            }
+
+            @if (expandedReceiptId() === receipt.id) {
+              <div class="receipt-history__expanded">
+                <div class="receipt-history__table-head">
+                  <span>Artikal</span>
+                  <span>Kol.</span>
+                  <span>Nab.</span>
+                  <span>Prod.</span>
+                  <span>Ukupno</span>
+                </div>
+                @for (item of receipt.items; track item.productId) {
+                  <div class="receipt-history__table-row">
+                    <span>{{ item.productName }}</span>
+                    <span>{{ item.quantity }} {{ unitLabels[item.unit] }}</span>
+                    <span>{{ formatCurrency(item.costPrice) }}</span>
+                    <span>{{ formatCurrency(item.sellingPrice) }}</span>
+                    <strong>{{ formatCurrency(item.quantity * item.costPrice) }}</strong>
+                  </div>
+                }
+              </div>
+            }
+          </article>
+        }
+      }
+
+      @if (hasMore()) {
+        <button type="button" class="receipt-history__load-more" (click)="loadMore()">
+          Prikaži još ({{ filteredReceipts().length - visibleCount() }} preostalo)
+        </button>
+      }
+    </div>
+  }
+</section>

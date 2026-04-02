@@ -1,0 +1,244 @@
+.stock-page {
+  gap: 1rem;
+}
+
+.stock-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stock-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.stock-header p {
+  margin: 0.15rem 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+.back-button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(241 245 249 / 0.85);
+  color: hsl(var(--muted-foreground));
+}
+
+.back-button svg,
+.search-box__icon svg,
+.low-button svg,
+.product-cell__icon svg,
+.stock-value svg,
+.edit-button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sort-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.stock-toolbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+}
+
+.search-box__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.85rem;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+}
+
+.search-box input {
+  width: 100%;
+  min-height: 2.7rem;
+  border: 1px solid rgb(217 224 234 / 0.95);
+  border-radius: 0.9rem;
+  background: hsl(var(--card));
+  padding: 0 0.9rem 0 2.35rem;
+  box-shadow: var(--shadow);
+}
+
+.low-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.9rem;
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  padding: 0 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.low-button--active {
+  background: rgb(239 68 68 / 0.1);
+  border-color: rgb(239 68 68 / 0.3);
+  color: hsl(var(--destructive));
+}
+
+.stock-table {
+  overflow: hidden;
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.9);
+}
+
+.stock-table__scroll {
+  overflow-x: auto;
+}
+
+.stock-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-table thead tr {
+  border-bottom: 1px solid hsl(var(--border));
+  background: rgb(241 245 249 / 0.6);
+}
+
+.stock-table th,
+.stock-table td {
+  padding: 0.85rem 0.75rem;
+}
+
+.stock-table th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.th-right,
+.td-right {
+  text-align: right;
+}
+
+.th-right button {
+  margin-left: auto;
+}
+
+.th-action,
+.td-action {
+  width: 3rem;
+  text-align: center;
+}
+
+.stock-table tbody tr {
+  border-bottom: 1px solid rgb(226 232 240 / 0.5);
+}
+
+.stock-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.product-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.product-cell__icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.8rem;
+  background: rgb(241 245 249 / 0.95);
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.product-cell__copy p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.product-cell__copy span,
+.td-right p {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.stock-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.stock-value--danger {
+  color: hsl(var(--destructive));
+}
+
+.td-right strong {
+  font-size: 0.9rem;
+  color: hsl(var(--foreground));
+}
+
+.price-note {
+  color: hsl(var(--accent-foreground));
+}
+
+.margin {
+  color: hsl(var(--success));
+}
+
+.edit-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.empty-state {
+  padding: 2.5rem 0;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .th-hide-sm {
+    display: none;
+  }
+}

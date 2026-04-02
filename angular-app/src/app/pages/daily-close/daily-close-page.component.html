@@ -1,0 +1,95 @@
+<section class="app-page">
+  <header class="daily-close-header">
+    <h1>Z-izveštaj</h1>
+    <button type="button" class="secondary-button" (click)="print()">Štampaj</button>
+  </header>
+
+  <input
+    class="daily-close-date"
+    type="date"
+    [ngModel]="selectedDate()"
+    (ngModelChange)="updateDate($event)"
+  />
+
+  <section class="daily-close-summary app-card">
+    <h2>Dnevni zaključak - {{ formatLongDate(selectedDate()) }}</h2>
+
+    <div class="daily-close-metrics">
+      <article class="metric-card">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="metric-card__icon metric-card__icon--success">
+          <path d="M2 9h20v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9ZM2 9V7a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2M12 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+        </svg>
+        <span>Gotovina</span>
+        <strong>{{ formatCurrency(summary().cashTotal) }}</strong>
+        <small>RSD</small>
+      </article>
+      <article class="metric-card">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="metric-card__icon metric-card__icon--primary">
+          <path d="M2 8h20M2 12h4M6 16h4M2 5h20a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+        </svg>
+        <span>Kartica</span>
+        <strong>{{ formatCurrency(summary().cardTotal) }}</strong>
+        <small>RSD</small>
+      </article>
+    </div>
+
+    <div class="daily-close-details">
+      <div>
+        <span class="daily-close-details__label">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="daily-close-details__icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" /><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+          </svg>
+          Ukupan pazar
+        </span>
+        <strong>{{ formatCurrency(summary().totalRevenue) }} RSD</strong>
+      </div>
+      <div>
+        <span class="daily-close-details__label">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="daily-close-details__icon">
+            <path d="M3 3v18h18M7 16l4-4 4 4 4-4" />
+          </svg>
+          Zarada
+        </span>
+        <strong class="metric-card__positive">{{ formatCurrency(summary().totalProfit) }} RSD</strong>
+      </div>
+      <div>
+        <span class="daily-close-details__label">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="daily-close-details__icon">
+            <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+          </svg>
+          Prodatih artikala
+        </span>
+        <strong>{{ summary().totalItems }}</strong>
+      </div>
+      <div><span>Broj računa</span><strong>{{ summary().completed.length }}</strong></div>
+      <div><span>Prosečan račun</span><strong>{{ formatCurrency(summary().averageReceipt) }} RSD</strong></div>
+      @if (summary().refunded.length > 0) {
+        <div><span class="metric-card__negative">Stornirano ({{ summary().refunded.length }})</span><strong class="metric-card__negative">-{{ formatCurrency(summary().refundedTotal) }} RSD</strong></div>
+      }
+    </div>
+  </section>
+
+  @if (soldProducts().length > 0) {
+    <section class="daily-close-list app-card">
+      <h2>Prodati artikli</h2>
+      <div class="daily-close-list__rows">
+        @for (product of soldProducts(); track product.id) {
+          <div class="daily-close-list__row">
+            <div>
+              <p>{{ product.name }}</p>
+              <span class="app-muted">{{ product.qty }} kom</span>
+            </div>
+            <strong>{{ formatCurrency(product.revenue) }} RSD</strong>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (summary().completed.length === 0) {
+    <section class="app-card empty-state">
+      <strong>Nema prodaja za ovaj dan</strong>
+      <span class="app-muted">Izaberite drugi datum ili prvo evidentirajte prodaje kroz migrirane rute.</span>
+    </section>
+  }
+</section>

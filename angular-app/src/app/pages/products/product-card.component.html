@@ -1,0 +1,33 @@
+<article class="product-card">
+  <div class="product-card__media" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 7.5 12 3l9 4.5-9 4.5L3 7.5Zm0 0V16.5L12 21l9-4.5V7.5" />
+    </svg>
+  </div>
+  <div class="product-card__body">
+    <p class="product-card__title">{{ product().name }}</p>
+    <p class="product-card__meta">
+      {{ product().sku }}
+      @if (product().subcategory) {
+        <span>· {{ product().subcategory }}</span>
+      }
+    </p>
+    <div class="product-card__footer">
+      <div>
+        <span class="product-card__price">{{ formatCurrency(product().sellingPrice) }} RSD</span>
+        @if (product().bulkPrice) {
+          <span class="product-card__bulk">/ {{ formatCurrency(product().bulkPrice!) }} vel.</span>
+        }
+        <span class="product-card__margin">{{ margin().toFixed(0) }}%</span>
+      </div>
+      <span class="product-card__stock" [class.product-card__stock--low]="isLowStock()">
+        @if (isLowStock()) {
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 4 3 20h18L12 4Zm0 5v4m0 4h.01" />
+          </svg>
+        }
+        {{ product().stock }} {{ unitLabelMap[product().unit] }}
+      </span>
+    </div>
+  </div>
+</article>

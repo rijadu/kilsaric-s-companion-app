@@ -1,0 +1,94 @@
+<section class="app-page">
+  <header class="inventory-header">
+    <div class="inventory-header__title">
+      <button type="button" class="inventory-header__back" (click)="goBack()" aria-label="Nazad">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <h1>Popis</h1>
+    </div>
+    @if (!activeCount()) {
+      <button type="button" class="primary-button" (click)="startNewCount()">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Novi popis
+      </button>
+    }
+  </header>
+
+  @if (pageMessage()) {
+    <section class="status-banner app-card">
+      <strong>Status</strong>
+      <span>{{ pageMessage() }}</span>
+    </section>
+  }
+
+  @if (activeCount()) {
+    <section class="inventory-count app-card">
+      <div class="inventory-count__header">
+        <div>
+          <h2>Popis u toku</h2>
+          <p class="app-muted">Unesite stvarno stanje za artikle sa liste.</p>
+        </div>
+        <span class="app-badge">U TOKU</span>
+      </div>
+
+      <div class="inventory-count__items">
+        @for (item of activeCount()!.items; track item.productId) {
+          <div class="inventory-count__item">
+            <div>
+              <p class="inventory-count__name">{{ item.productName }}</p>
+              <p class="app-muted">Sistemski: {{ item.systemStock }}</p>
+            </div>
+            <input
+              type="number"
+              [ngModel]="currentActualStock(item.productId, item.systemStock)"
+              (ngModelChange)="updateActualStock(item.productId, $event)"
+            />
+            <span [class]="differenceClass(difference(item.productId, item.systemStock))">
+              {{ difference(item.productId, item.systemStock) > 0 ? '+' : '' }}{{ difference(item.productId, item.systemStock) }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <button type="button" class="primary-button" (click)="finishCount()">Završi popis</button>
+    </section>
+  }
+
+  <div class="inventory-history">
+    @for (count of counts(); track count.id) {
+      <article class="inventory-history__card app-card">
+        <div class="inventory-history__header">
+          <div>
+            <p class="inventory-history__title">Popis {{ formatDate(count.date) }}.</p>
+            <p class="app-muted">{{ count.items.length }} artikala prebrojano</p>
+          </div>
+          @if (discrepancyCount(count) > 0) {
+            <span class="app-badge app-badge--warning">{{ discrepancyCount(count) }} razlika</span>
+          } @else {
+            <span class="app-badge app-badge--success">Sve OK</span>
+          }
+        </div>
+
+        @if (discrepancyCount(count) > 0) {
+          <div class="inventory-history__list">
+            @for (item of count.items; track item.productId) {
+              @if (item.difference !== 0) {
+                <div class="inventory-history__row">
+                  <span>{{ item.productName }}</span>
+                  <strong [class]="differenceClass(item.difference)">
+                    {{ item.difference > 0 ? '+' : '' }}{{ item.difference }}
+                    (sistem: {{ item.systemStock }}, stvarno: {{ item.actualStock }})
+                  </strong>
+                </div>
+              }
+            }
+          </div>
+        }
+      </article>
+    }
+  </div>
+</section>

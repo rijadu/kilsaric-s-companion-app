@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                String               @id @default(uuid())
+  name              String
+  sku               String               @unique
+  barcode           String               @unique
+  category          String
+  subcategory       String?
+  brand             String
+  description       String
+  costPrice         Float
+  sellingPrice      Float
+  bulkPrice         Float?
+  bulkMinQty        Int?
+  unit              ProductUnit
+  packSize          Int?
+  stock             Int                  @default(0)
+  lowStockThreshold Int                  @default(0)
+  status            ProductStatus        @default(active)
+  image             String?
+  expiryDate        DateTime?
+  warrantyMonths    Int?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  variants          Variant[]
+  stockChanges      StockChange[]
+  saleItems         SaleItem[]
+  receiptItems      GoodsReceiptItem[]
+  inventoryItems    InventoryCountItem[]
+}
+
+enum ProductUnit {
+  piece
+  kg
+  meter
+  liter
+  box
+}
+
+enum ProductStatus {
+  active
+  inactive
+}
+
+model Variant {
+  id            String  @id @default(uuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  sku           String  @unique
+  barcode       String?
+  stock         Int     @default(0)
+  priceOverride Float?
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String?
+  email         String?
+  address       String?
+  discountType  String?
+  discountValue Float?
+  note          String?
+  createdAt     DateTime @default(now())
+  sales         Sale[]
+}
+
+model Supplier {
+  id            String         @id @default(uuid())
+  name          String
+  phone         String?
+  email         String?
+  address       String?
+  note          String?
+  productNames  String[]
+  createdAt     DateTime       @default(now())
+  goodsReceipts GoodsReceipt[]
+}
+
+model Sale {
+  id            String        @id @default(uuid())
+  items         SaleItem[]
+  subtotal      Float
+  discountType  String?
+  discountValue Float?
+  total         Float
+  paymentMethod PaymentMethod
+  customerId    String?
+  customer      Customer?     @relation(fields: [customerId], references: [id])
+  customerName  String?
+  date          DateTime      @default(now())
+  status        SaleStatus    @default(completed)
+  refundDate    DateTime?
+  refundReason  String?
+}
+
+enum PaymentMethod {
+  cash
+  card
+}
+
+enum SaleStatus {
+  completed
+  refunded
+}
+
+model SaleItem {
+  id            String  @id @default(uuid())
+  saleId        String
+  sale          Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  productName   String
+  productSku    String
+  costPrice     Float
+  sellingPrice  Float
+  unit          String
+  variantId     String?
+  variantName   String?
+  quantity      Int
+  discountType  String?
+  discountValue Float?
+  lineTotal     Float
+}
+
+model StockChange {
+  id            String          @id @default(uuid())
+  productId     String
+  product       Product         @relation(fields: [productId], references: [id])
+  productName   String
+  type          StockChangeType
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  note          String?
+  date          DateTime        @default(now())
+}
+
+enum StockChangeType {
+  sale
+  receipt
+  correction
+  refund
+  inventory
+}
+
+model GoodsReceipt {
+  id           String             @id @default(uuid())
+  supplierId   String?
+  supplier     Supplier?          @relation(fields: [supplierId], references: [id])
+  supplierName String
+  items        GoodsReceiptItem[]
+  totalCost    Float
+  date         DateTime           @default(now())
+  note         String?
+}
+
+model GoodsReceiptItem {
+  id          String       @id @default(uuid())
+  receiptId   String
+  receipt     GoodsReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product      @relation(fields: [productId], references: [id])
+  productName String
+  quantity    Int
+  costPrice   Float
+}
+
+model InventoryCount {
+  id     String               @id @default(uuid())
+  date   DateTime             @default(now())
+  status InventoryStatus      @default(in_progress)
+  items  InventoryCountItem[]
+}
+
+enum InventoryStatus {
+  in_progress
+  completed
+}
+
+model InventoryCountItem {
+  id          String         @id @default(uuid())
+  countId     String
+  count       InventoryCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product        @relation(fields: [productId], references: [id])
+  productName String
+  systemStock Int
+  actualStock Int
+  difference  Int
+}
