@@ -1,1 +1,7 @@
-{"version": 2, "buildCommand": "npm run build", "outputDirectory": "dist/kilsaric-companion-angular/browser"}
+{
+  "buildCommand": "npm  run build",
+  "outputDirectory": "angular-app/dist/kilsaric-companion-angular/browser",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
