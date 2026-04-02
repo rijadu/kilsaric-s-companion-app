@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm --prefix angular-app run build",
+  "outputDirectory": "angular-app/dist/kilsaric-companion-angular/browser",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
