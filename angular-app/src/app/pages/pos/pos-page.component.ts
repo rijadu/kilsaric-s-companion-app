@@ -259,7 +259,6 @@ export class PosPageComponent {
   }
 
   protected async startScanner(): Promise<void> {
-    this.pageMessage.set(null);
     this.search.set('');
     this.scanning.set(true);
 
