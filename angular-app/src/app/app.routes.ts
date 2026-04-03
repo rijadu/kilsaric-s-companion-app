@@ -119,15 +119,7 @@ export const routes: Routes = [
           ),
         title: 'Dnevni presek',
       },
-      {
-        path: 'customers',
-        loadComponent: () =>
-          import('./pages/customers/customers-page.component').then(
-            (module) => module.CustomersPageComponent,
-          ),
-        title: 'Kupci',
-      },
-      {
+{
         path: 'suppliers',
         loadComponent: () =>
           import('./pages/suppliers/suppliers-page.component').then(

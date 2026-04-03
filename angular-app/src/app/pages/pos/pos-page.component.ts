@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Html5Qrcode } from 'html5-qrcode';
-import { CartItem, Customer, Product, getItemTotal } from '../../shared/mock-data';
+import { CartItem, Product, getItemTotal } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
 import {
   ReceiptData,
@@ -21,16 +21,15 @@ interface ReceiptSnapshot {
     value: number;
   };
   total: number;
-  method: 'cash' | 'card';
+  method: 'cash';
   receiptNumber: string;
   date: Date;
-  customerName?: string;
 }
 
 @Component({
   selector: 'app-pos-page',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './pos-page.component.html',
   styleUrl: './pos-page.component.css',
 })
@@ -42,17 +41,12 @@ export class PosPageComponent {
     initialValue: this.route.snapshot.queryParamMap,
   });
   private readonly products = this.store.products;
-  private readonly customers = this.store.customers;
   private scanner: Html5Qrcode | null = null;
 
   protected readonly scannerRegionId = 'pos-scanner-region';
   protected readonly serialSupported = isSerialSupported();
   protected readonly search = signal('');
   protected readonly cart = signal<CartItem[]>([]);
-  protected readonly showCheckout = signal(false);
-  protected readonly selectedCustomerId = signal<string | null>(null);
-  protected readonly showCustomerPicker = signal(false);
-  protected readonly customerSearch = signal('');
   protected readonly scanning = signal(false);
   protected readonly showCartDiscount = signal(false);
   protected readonly cartDiscountInput = signal('');
@@ -66,13 +60,6 @@ export class PosPageComponent {
   protected readonly itemDiscountType = signal<DiscountType>('percent');
   protected readonly lastSale = signal<ReceiptSnapshot | null>(null);
   protected readonly pageMessage = signal<string | null>(null);
-
-  protected readonly selectedCustomer = computed(() => {
-    const customerId = this.selectedCustomerId();
-    return customerId
-      ? this.customers().find((customer) => customer.id === customerId) ?? null
-      : null;
-  });
 
   protected readonly searchResults = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -95,21 +82,6 @@ export class PosPageComponent {
       .filter((product) => product.status === 'active')
       .slice(0, 6),
   );
-
-  protected readonly filteredCustomers = computed(() => {
-    const query = this.customerSearch().trim().toLowerCase();
-    const customers = this.customers();
-    if (!query) {
-      return customers;
-    }
-
-    return customers.filter(
-      (customer) =>
-        customer.name.toLowerCase().includes(query) ||
-        customer.phone?.includes(query) ||
-        customer.email?.toLowerCase().includes(query),
-    );
-  });
 
   protected readonly subtotal = computed(() =>
     this.cart().reduce((sum, item) => sum + getItemTotal(item), 0),
@@ -151,10 +123,6 @@ export class PosPageComponent {
 
   protected updateSearch(value: string): void {
     this.search.set(value);
-  }
-
-  protected updateCustomerSearch(value: string): void {
-    this.customerSearch.set(value);
   }
 
   protected addToCart(product: Product, incrementExisting = true): void {
@@ -274,29 +242,6 @@ export class PosPageComponent {
     this.itemDiscountInput.set('');
   }
 
-  protected toggleCustomerPicker(): void {
-    this.showCustomerPicker.update((value) => !value);
-  }
-
-  protected selectCustomer(customer: Customer): void {
-    this.selectedCustomerId.set(customer.id);
-    this.showCustomerPicker.set(false);
-    this.customerSearch.set('');
-
-    if (customer.defaultDiscount) {
-      this.cartDiscount.set({ ...customer.defaultDiscount });
-      this.pageMessage.set(`Primenjen podrazumevani popust za ${customer.name}.`);
-    } else {
-      this.pageMessage.set(`Kupac je izabran: ${customer.name}.`);
-    }
-  }
-
-  protected clearSelectedCustomer(): void {
-    this.selectedCustomerId.set(null);
-    this.cartDiscount.set(null);
-    this.pageMessage.set('Kupac je uklonjen sa računa.');
-  }
-
   protected openCartDiscount(): void {
     this.showCartDiscount.set(true);
     this.cartDiscountInput.set(this.cartDiscount()?.value?.toString() ?? '');
@@ -374,11 +319,7 @@ export class PosPageComponent {
     this.scanning.set(false);
   }
 
-  protected toggleCheckout(): void {
-    this.showCheckout.update((value) => !value);
-  }
-
-  protected async completeCheckout(method: 'cash' | 'card'): Promise<void> {
+  protected async completeCheckout(): Promise<void> {
     if (this.cart().length === 0) {
       return;
     }
@@ -388,9 +329,7 @@ export class PosPageComponent {
     const sale = await this.store.recordSale({
       items: this.cart(),
       discount: this.cartDiscount() ?? undefined,
-      paymentMethod: method,
-      customerId: this.selectedCustomer()?.id ?? undefined,
-      customerName: this.selectedCustomer()?.name ?? undefined,
+      paymentMethod: 'cash',
     });
 
     if (!sale) {
@@ -405,20 +344,16 @@ export class PosPageComponent {
       subtotal: sale.subtotal,
       discount: sale.discount,
       total: sale.total,
-      method,
+      method: 'cash',
       receiptNumber,
       date: saleDate,
-      customerName: sale.customerName,
     });
 
     this.cart.set([]);
     this.cartDiscount.set(null);
-    this.selectedCustomerId.set(null);
-    this.showCustomerPicker.set(false);
     this.showCartDiscount.set(false);
-    this.showCheckout.set(false);
     this.pageMessage.set(
-      `Prodaja je završena: ${this.formatCurrency(sale.total)} RSD · ${method === 'cash' ? 'Gotovina' : 'Kartica'}.`,
+      `Prodaja je završena: ${this.formatCurrency(sale.total)} RSD · Gotovina.`,
     );
   }
 
@@ -491,16 +426,6 @@ export class PosPageComponent {
 
   protected itemTotal(item: CartItem): number {
     return getItemTotal(item);
-  }
-
-  protected customerDiscountLabel(customer: Customer): string | null {
-    if (!customer.defaultDiscount) {
-      return null;
-    }
-
-    return customer.defaultDiscount.type === 'percent'
-      ? `${customer.defaultDiscount.value}%`
-      : `${this.formatCurrency(customer.defaultDiscount.value)} RSD`;
   }
 
   private parseNumber(value: string): number {

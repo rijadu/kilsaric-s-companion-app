@@ -1,12 +1,6 @@
 <section class="app-page pos-page">
   <header class="pos-header">
     <h1>Prodaja</h1>
-    <a routerLink="/customers" class="pos-header__action" aria-label="Kupci">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <path d="M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm6.74-2.18a4 4 0 0 1 0 6.36M22 21v-2a4 4 0 0 0-3-3.87" />
-      </svg>
-    </a>
   </header>
 
   @if (pageMessage()) {
@@ -76,65 +70,6 @@
       <p class="scanner-card__caption">Skeniraj artikle, automatski se dodaju u korpu.</p>
     </section>
   }
-
-  <section class="customer-card">
-    @if (selectedCustomer()) {
-      <div class="customer-card__selected">
-        <div>
-          <strong>{{ selectedCustomer()!.name }}</strong>
-          @if (selectedCustomer()!.defaultDiscount) {
-            <small class="app-muted">
-              Popust: {{ customerDiscountLabel(selectedCustomer()!) }}
-            </small>
-          }
-        </div>
-        <button type="button" class="customer-card__clear" (click)="clearSelectedCustomer()" aria-label="Ukloni kupca">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-        </button>
-      </div>
-    } @else {
-      <button type="button" class="customer-card__picker" (click)="toggleCustomerPicker()">
-        <span class="customer-card__picker-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8h.01" />
-          </svg>
-        </span>
-        <span class="customer-card__picker-label">Izaberi kupca (opciono)</span>
-        <span class="customer-card__picker-chevron">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </span>
-      </button>
-    }
-
-    @if (showCustomerPicker() && !selectedCustomer()) {
-      <div class="customer-picker">
-        <input
-          type="text"
-          [ngModel]="customerSearch()"
-          (ngModelChange)="updateCustomerSearch($event)"
-          placeholder="Pretraži kupce..."
-        />
-
-        <div class="customer-picker__list">
-          @for (customer of filteredCustomers(); track customer.id) {
-            <button type="button" class="customer-picker__item" (click)="selectCustomer(customer)">
-              <div>
-                <strong>{{ customer.name }}</strong>
-                <small class="app-muted">{{ customer.phone || customer.email || 'Bez kontakta' }}</small>
-              </div>
-              @if (customer.defaultDiscount) {
-                <span class="app-badge app-badge--warning">{{ customerDiscountLabel(customer) }}</span>
-              }
-            </button>
-          } @empty {
-            <p class="app-muted">Nema rezultata.</p>
-          }
-        </div>
-      </div>
-    }
-  </section>
 
   @if (cart().length === 0 && !lastSale()) {
     <section class="empty-state">
@@ -292,34 +227,12 @@
         </div>
       </div>
 
-      @if (!showCheckout()) {
-        <button type="button" class="primary-button" (click)="toggleCheckout()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
-            <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
-          </svg>
-          Naplati ({{ cart().length }} stavki)
-        </button>
-      } @else {
-        <div class="checkout-bar__actions">
-          <button type="button" class="primary-button primary-button--success" (click)="completeCheckout('cash')">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
-              <path d="M2 9h20v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9ZM2 9V7a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2M12 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-            </svg>
-            Gotovina
-          </button>
-          <button type="button" class="primary-button primary-button--dark" (click)="completeCheckout('card')">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
-              <path d="M2 8h20M2 12h4M6 16h4M2 5h20a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
-            </svg>
-            Kartica
-          </button>
-          <button type="button" class="secondary-button checkout-bar__back-btn" (click)="toggleCheckout()">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      }
+      <button type="button" class="primary-button" (click)="completeCheckout()">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="checkout-bar__btn-icon">
+          <path d="M6 6h15l-1.5 7.5h-11ZM6 6 5 3H3M8 18.5a1 1 0 1 0 0 .01M18 18.5a1 1 0 1 0 0 .01" />
+        </svg>
+        Naplati ({{ cart().length }} stavki)
+      </button>
     </section>
   }
 
@@ -329,9 +242,6 @@
         <h2>Poslednji račun</h2>
         <p class="app-muted">
           {{ lastSale()!.receiptNumber }} · {{ formatDate(lastSale()!.date) }} {{ formatTime(lastSale()!.date) }}
-          @if (lastSale()!.customerName) {
-            · {{ lastSale()!.customerName }}
-          }
         </p>
       </div>
 
@@ -400,7 +310,7 @@
 
         <div class="receipt-print__summary-row">
           <span>Plaćanje</span>
-          <span>{{ lastSale()!.method === 'cash' ? 'Gotovina' : 'Kartica' }}</span>
+          <span>Gotovina</span>
         </div>
 
         <div class="receipt-print__divider"></div>
