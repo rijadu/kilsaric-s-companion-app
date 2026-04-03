@@ -6,13 +6,13 @@ RUN apk add --no-cache openssl
 
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY tsconfig.json ./
+COPY nest-cli.json ./
+COPY src ./src
 
 RUN npm ci
-
-COPY . .
-
 RUN npx prisma generate
-RUN npm run build
+RUN npx nest build
 
 FROM node:22-alpine
 
