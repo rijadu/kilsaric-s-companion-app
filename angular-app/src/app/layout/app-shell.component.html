@@ -12,6 +12,8 @@
     <router-outlet />
   </main>
 
+  <app-dialog />
+
   @if (snackbar.current(); as snack) {
     <div class="snackbar" [class.snackbar--error]="snack.type === 'error'">
       @if (snack.type === 'success') {

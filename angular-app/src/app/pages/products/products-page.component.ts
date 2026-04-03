@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Product } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
 import { SnackbarService } from '../../shared/snackbar.service';
+import { DialogService } from '../../shared/dialog.service';
 import { ProductCardComponent } from './product-card.component';
 
 @Component({
@@ -17,6 +18,7 @@ import { ProductCardComponent } from './product-card.component';
 export class ProductsPageComponent {
   private readonly store = inject(MockStoreService);
   private readonly snackbar = inject(SnackbarService);
+  private readonly dialog = inject(DialogService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParams = toSignal(this.route.queryParamMap, {
@@ -107,7 +109,14 @@ export class ProductsPageComponent {
   }
 
   protected async deleteProduct(id: string, name: string): Promise<void> {
-    if (!confirm(`Obrisati "${name}"? Ova radnja se ne može poništiti.`)) return;
+    const confirmed = await this.dialog.confirm({
+      title: 'Obriši proizvod',
+      message: `Obrisati "${name}"? Ova radnja se ne može poništiti.`,
+      confirmText: 'Obriši',
+      cancelText: 'Otkaži',
+      destructive: true,
+    });
+    if (!confirmed) return;
     await this.store.deleteProduct(id);
     this.snackbar.success(`"${name}" je obrisan.`);
     this.correctionProductId.set(null);
