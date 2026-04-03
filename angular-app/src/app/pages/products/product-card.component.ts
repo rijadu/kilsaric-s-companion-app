@@ -1,9 +1,11 @@
 import { Component, computed, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Product, getMarginPercent } from '../../shared/mock-data';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './product-card.component.html',
   styleUrl: './product-card.component.css',
 })
