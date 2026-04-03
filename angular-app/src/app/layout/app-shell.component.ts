@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MockStoreService } from '../shared/mock-store.service';
 import { SnackbarService } from '../shared/snackbar.service';
+import { DialogComponent } from '../shared/dialog.component';
 
 interface NavItem {
   path: string;
@@ -14,7 +15,7 @@ interface NavItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, DialogComponent],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
 })

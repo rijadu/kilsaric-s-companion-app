@@ -1,0 +1,105 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgb(0 0 0 / 0.5);
+  animation: backdrop-in 0.22s ease;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 80;
+  width: min(calc(100vw - 2rem), 28rem);
+  border-radius: 1rem;
+  background: hsl(var(--card));
+  box-shadow: 0 20px 48px rgb(0 0 0 / 0.25);
+  animation: dialog-in 0.22s ease;
+}
+
+.dialog__header {
+  padding: 1.5rem 1.5rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.dialog__body {
+  padding: 1rem 1.5rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.dialog__body p {
+  margin: 0;
+}
+
+.dialog__footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.dialog__button {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dialog__button--cancel {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.dialog__button--cancel:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.dialog__button--confirm {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.dialog__button--confirm:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.dialog__button--destructive {
+  background: hsl(var(--destructive));
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-48%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-50%);
+  }
+}
