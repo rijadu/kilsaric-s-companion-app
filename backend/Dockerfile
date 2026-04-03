@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -13,19 +13,7 @@ COPY src ./src
 RUN npm ci
 RUN npx prisma generate
 RUN npx nest build
-
-FROM node:22-alpine
-
-WORKDIR /app
-
-RUN apk add --no-cache openssl
-
-COPY package*.json ./
-COPY prisma ./prisma/
-
-RUN npm ci --omit=dev && npx prisma generate
-
-COPY --from=builder /app/dist ./dist
+RUN ls -la dist/
 
 EXPOSE 3000
 
