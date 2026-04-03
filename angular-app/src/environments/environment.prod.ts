@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
+  apiUrl: 'https://kilsaric-s-companion-app-production.up.railway.app/api',
 };
