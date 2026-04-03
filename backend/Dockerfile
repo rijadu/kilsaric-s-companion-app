@@ -13,7 +13,7 @@ COPY src ./src
 RUN npm ci
 RUN npx prisma generate
 RUN npx nest build
-RUN ls -la dist/
+RUN test -f dist/main.js || (echo "BUILD FAILED: dist/main.js not found" && exit 1)
 
 EXPOSE 3000
 
