@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Product } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 interface ReceiptItemDraft {
   productId: string;
@@ -23,6 +24,7 @@ interface ReceiptItemDraft {
 })
 export class GoodsReceiptFormPageComponent implements OnDestroy {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly allProducts = this.store.products;
@@ -39,7 +41,6 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
   protected readonly searchQuery = signal('');
   protected readonly showSearch = signal(false);
   protected readonly scanning = signal(false);
-  protected readonly pageMessage = signal<string | null>(null);
   protected readonly showSupplierSuggestions = signal(false);
 
   constructor() {
@@ -145,7 +146,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
         },
       ];
     });
-    this.pageMessage.set(`${product.name} je dodat.`);
+    this.snackbar.success(`${product.name} je dodat.`);
     this.searchQuery.set('');
     this.showSearch.set(false);
   }
@@ -153,7 +154,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
   protected addItemByBarcode(code: string): void {
     const product = this.store.findProductByCode(code);
     if (!product) {
-      this.pageMessage.set(`Proizvod nije pronađen: ${code}`);
+      this.snackbar.error(`Proizvod nije pronađen: ${code}`);
       return;
     }
     this.addItem(product);
@@ -194,7 +195,6 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
 
   protected async startScanner(): Promise<void> {
     this.scanning.set(true);
-    this.pageMessage.set(null);
     await new Promise((resolve) => setTimeout(resolve, 250));
     try {
       this.scanner = new Html5Qrcode(this.scannerRegionId);
@@ -206,7 +206,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
       );
     } catch (error) {
       this.scanning.set(false);
-      this.pageMessage.set(`Kamera nije mogla da se pokrene: ${this.formatError(error)}`);
+      this.snackbar.error(`Kamera nije mogla da se pokrene: ${this.formatError(error)}`);
     }
   }
 
@@ -226,7 +226,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
 
   protected async submit(): Promise<void> {
     if (this.items().length === 0) {
-      this.pageMessage.set('Dodajte barem jedan artikal.');
+      this.snackbar.error('Dodajte barem jedan artikal.');
       return;
     }
 
@@ -243,7 +243,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
         items: this.items(),
       });
       if (!receipt) {
-        this.pageMessage.set('Dodajte barem jedan artikal.');
+        this.snackbar.error('Dodajte barem jedan artikal.');
         return;
       }
     }

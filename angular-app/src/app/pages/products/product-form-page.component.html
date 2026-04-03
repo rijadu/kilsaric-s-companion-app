@@ -8,13 +8,6 @@
     <h1>{{ isEdit() ? 'Izmeni proizvod' : 'Novi proizvod' }}</h1>
   </header>
 
-  @if (pageMessage()) {
-    <section class="status-banner app-card">
-      <strong>Status</strong>
-      <span>{{ pageMessage() }}</span>
-    </section>
-  }
-
   <form class="product-form" [formGroup]="form" (ngSubmit)="save()">
     <section class="form-section app-card">
       <h2>Osnovni podaci</h2>

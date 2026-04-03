@@ -1,9 +1,10 @@
 import { FormsModule } from '@angular/forms';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GoodsReceipt } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 @Component({
   selector: 'app-goods-receipt-page',
@@ -14,6 +15,7 @@ import { MockStoreService } from '../../shared/mock-store.service';
 })
 export class GoodsReceiptPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly queryParams = toSignal(this.route.queryParamMap, {
@@ -41,12 +43,20 @@ export class GoodsReceiptPageComponent {
     box: 'kutija',
   };
 
-  protected readonly savedMessage = computed(() => {
-    const saved = this.queryParams().get('saved');
-    if (saved === 'created') return 'Prijem robe je evidentiran.';
-    if (saved === 'updated') return 'Prijem robe je izmenjen.';
-    return null;
-  });
+  constructor() {
+    effect(() => {
+      const saved = this.queryParams().get('saved');
+      if (!saved) return;
+      if (saved === 'created') this.snackbar.success('Prijem robe je evidentiran.');
+      if (saved === 'updated') this.snackbar.success('Prijem robe je izmenjen.');
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { saved: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+  }
 
   protected readonly filteredReceipts = computed(() => {
     const query = this.historySearch().trim().toLowerCase();

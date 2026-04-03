@@ -2,6 +2,7 @@ import { FormsModule } from '@angular/forms';
 import { Component, computed, inject, signal } from '@angular/core';
 import { getItemTotal, Sale } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 type DateFilter = 'today' | 'week' | 'all';
 
@@ -14,10 +15,10 @@ type DateFilter = 'today' | 'week' | 'all';
 })
 export class SalesHistoryPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
 
   protected readonly refundingId = signal<string | null>(null);
   protected readonly refundReason = signal('');
-  protected readonly pageMessage = signal<string | null>(null);
   protected readonly sales = this.store.sales;
   protected readonly searchQuery = signal('');
   protected readonly dateFilter = signal<DateFilter>('all');
@@ -53,7 +54,6 @@ export class SalesHistoryPageComponent {
   protected startRefund(saleId: string): void {
     this.refundingId.set(saleId);
     this.refundReason.set('');
-    this.pageMessage.set(null);
   }
 
   protected cancelRefund(): void {
@@ -65,13 +65,11 @@ export class SalesHistoryPageComponent {
     const reason = this.refundReason().trim() || 'Bez razloga';
     const result = await this.store.refundSale(saleId, reason);
     if (!result) {
-      this.pageMessage.set('Prodaja nije dostupna za storno.');
+      this.snackbar.error('Prodaja nije dostupna za storno.');
       return;
     }
 
-    this.pageMessage.set(
-      `Prodaja je stornirana. Vraceno artikala: ${result.restoredItems}.`,
-    );
+    this.snackbar.success(`Prodaja je stornirana. Vraćeno artikala: ${result.restoredItems}.`);
     this.cancelRefund();
   }
 

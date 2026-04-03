@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, Variant } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 type ProductUnit = Product['unit'];
 type ProductStatus = Product['status'];
@@ -19,6 +20,7 @@ type ProductStatus = Product['status'];
 export class ProductFormPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -31,7 +33,6 @@ export class ProductFormPageComponent {
 
   protected readonly isEdit = signal(false);
   protected readonly submitted = signal(false);
-  protected readonly pageMessage = signal<string | null>(null);
   protected readonly editingProductId = signal<string | null>(null);
   protected readonly categories = this.store.availableCategories;
   protected readonly brands = this.store.availableBrands;
@@ -119,7 +120,7 @@ export class ProductFormPageComponent {
 
       const product = this.store.getProductById(productId);
       if (!product) {
-        this.pageMessage.set('Proizvod nije pronađen. Vraćam na listu.');
+        this.snackbar.error('Proizvod nije pronađen.');
         void this.router.navigate(['/products']);
         return;
       }
@@ -142,18 +143,15 @@ export class ProductFormPageComponent {
 
   protected async save(): Promise<void> {
     this.submitted.set(true);
-    this.pageMessage.set(null);
 
     if (this.form.invalid) {
-      this.pageMessage.set(
-        'Popunite obavezna polja: naziv, SKU i prodajna cena.',
-      );
+      this.snackbar.error('Popunite obavezna polja: naziv, SKU i prodajna cena.');
       return;
     }
 
     const payload = this.buildProductPayload();
     if (!payload) {
-      this.pageMessage.set('Forma nije mogla da se sačuva.');
+      this.snackbar.error('Forma nije mogla da se sačuva.');
       return;
     }
 
@@ -187,7 +185,6 @@ export class ProductFormPageComponent {
   }
 
   private resetForCreate(): void {
-    this.pageMessage.set(null);
     this.form.reset(
       {
         name: '',
@@ -216,7 +213,6 @@ export class ProductFormPageComponent {
   }
 
   private patchProduct(product: Product): void {
-    this.pageMessage.set(null);
     this.form.patchValue(
       {
         name: product.name,

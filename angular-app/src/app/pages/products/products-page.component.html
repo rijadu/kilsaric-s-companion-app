@@ -28,14 +28,6 @@
     </div>
   </header>
 
-  @if (savedMessage()) {
-    <section class="status-banner app-card">
-      <strong>Status</strong>
-      <span>{{ savedMessage() }}</span>
-      <button type="button" (click)="dismissSavedMessage()">Zatvori</button>
-    </section>
-  }
-
   <div class="quick-actions">
     <a routerLink="/inventory-count" class="quick-action">
       <span class="quick-action__icon quick-action__icon--primary">

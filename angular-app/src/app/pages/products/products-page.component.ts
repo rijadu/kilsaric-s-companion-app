@@ -1,9 +1,10 @@
 import { FormsModule } from '@angular/forms';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Product } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 import { ProductCardComponent } from './product-card.component';
 
 @Component({
@@ -15,6 +16,7 @@ import { ProductCardComponent } from './product-card.component';
 })
 export class ProductsPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParams = toSignal(this.route.queryParamMap, {
@@ -28,7 +30,6 @@ export class ProductsPageComponent {
   protected readonly correctionProductId = signal<string | null>(null);
   protected readonly correctionQty = signal('');
   protected readonly correctionNote = signal('');
-  protected readonly localMessage = signal<string | null>(null);
   protected readonly categories = this.store.availableCategories;
 
   protected readonly activeSubcategories = computed(() => {
@@ -42,23 +43,20 @@ export class ProductsPageComponent {
     () => this.queryParams().get('filter') === 'low-stock',
   );
 
-  protected readonly savedMessage = computed(() => {
-    const localMessage = this.localMessage();
-    if (localMessage) {
-      return localMessage;
-    }
-
-    const saved = this.queryParams().get('saved');
-    if (saved === 'created') {
-      return 'Proizvod je dodat.';
-    }
-
-    if (saved === 'updated') {
-      return 'Izmene proizvoda su sačuvane.';
-    }
-
-    return null;
-  });
+  constructor() {
+    effect(() => {
+      const saved = this.queryParams().get('saved');
+      if (!saved) return;
+      if (saved === 'created') this.snackbar.success('Proizvod je dodat.');
+      if (saved === 'updated') this.snackbar.success('Izmene proizvoda su sačuvane.');
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { saved: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+  }
 
   protected readonly products = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -108,16 +106,6 @@ export class ProductsPageComponent {
     });
   }
 
-  protected dismissSavedMessage(): void {
-    this.localMessage.set(null);
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { saved: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
-  }
-
   protected toggleCorrection(productId: string): void {
     this.correctionProductId.set(
       this.correctionProductId() === productId ? null : productId,
@@ -138,7 +126,7 @@ export class ProductsPageComponent {
   protected async applyCorrection(product: Product, positive: boolean): Promise<void> {
     const parsedQty = Number.parseInt(this.correctionQty(), 10);
     if (Number.isNaN(parsedQty) || parsedQty <= 0) {
-      this.localMessage.set('Unesite ispravnu količinu za korekciju.');
+      this.snackbar.error('Unesite ispravnu količinu za korekciju.');
       return;
     }
 
@@ -151,13 +139,11 @@ export class ProductsPageComponent {
     );
 
     if (!result) {
-      this.localMessage.set('Proizvod nije pronađen za korekciju.');
+      this.snackbar.error('Proizvod nije pronađen za korekciju.');
       return;
     }
 
-    this.localMessage.set(
-      `Zaliha je ažurirana: ${product.name} -> ${result.newStock}.`,
-    );
+    this.snackbar.success(`Zaliha je ažurirana: ${product.name} → ${result.newStock}.`);
     this.toggleCorrection(product.id);
   }
 }

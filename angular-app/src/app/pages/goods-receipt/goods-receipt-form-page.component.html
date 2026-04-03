@@ -4,12 +4,6 @@
     <button type="button" class="secondary-button" (click)="cancel()">Otkaži</button>
   </header>
 
-  @if (pageMessage()) {
-    <section class="status-banner app-card">
-      <span>{{ pageMessage() }}</span>
-    </section>
-  }
-
   <section class="receipt-form app-card">
     <div class="supplier-autocomplete">
       <input

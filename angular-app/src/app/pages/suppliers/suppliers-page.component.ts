@@ -2,6 +2,7 @@ import { FormsModule } from '@angular/forms';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Supplier } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 interface SupplierFormValue {
   name: string;
@@ -30,6 +31,7 @@ const emptySupplierForm: SupplierFormValue = {
 })
 export class SuppliersPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   protected readonly suppliers = this.store.suppliers;
 
   protected readonly search = signal('');
@@ -37,7 +39,6 @@ export class SuppliersPageComponent {
   protected readonly editingId = signal<string | null>(null);
   protected readonly form = signal<SupplierFormValue>({ ...emptySupplierForm });
   protected readonly selectedId = signal<string | null>(null);
-  protected readonly pageMessage = signal<string | null>(null);
 
   protected readonly filteredSuppliers = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -66,7 +67,6 @@ export class SuppliersPageComponent {
     this.form.set({ ...emptySupplierForm });
     this.editingId.set(null);
     this.showForm.set(true);
-    this.pageMessage.set(null);
   }
 
   protected openEdit(supplier: Supplier): void {
@@ -80,7 +80,6 @@ export class SuppliersPageComponent {
     });
     this.editingId.set(supplier.id);
     this.showForm.set(true);
-    this.pageMessage.set(null);
   }
 
   protected closeForm(): void {
@@ -98,7 +97,7 @@ export class SuppliersPageComponent {
   protected async save(): Promise<void> {
     const form = this.form();
     if (!form.name.trim()) {
-      this.pageMessage.set('Unesite ime dobavljača.');
+      this.snackbar.error('Unesite ime dobavljača.');
       return;
     }
 
@@ -118,7 +117,7 @@ export class SuppliersPageComponent {
         note: form.note || undefined,
         products,
       });
-      this.pageMessage.set('Dobavljač je ažuriran.');
+      this.snackbar.success('Dobavljač je ažuriran.');
     } else {
       await this.store.createSupplier({
         name: form.name,
@@ -128,7 +127,7 @@ export class SuppliersPageComponent {
         note: form.note || undefined,
         products,
       });
-      this.pageMessage.set('Dobavljač je dodat.');
+      this.snackbar.success('Dobavljač je dodat.');
     }
 
     this.closeForm();
@@ -141,7 +140,7 @@ export class SuppliersPageComponent {
     if (this.selectedId() === id) {
       this.selectedId.set(null);
     }
-    this.pageMessage.set('Dobavljač je obrisan.');
+    this.snackbar.success('Dobavljač je obrisan.');
   }
 
   protected toggleSelected(id: string): void {

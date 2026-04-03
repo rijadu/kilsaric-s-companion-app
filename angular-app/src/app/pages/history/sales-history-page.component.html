@@ -22,13 +22,6 @@
     </div>
   </div>
 
-  @if (pageMessage()) {
-    <section class="status-banner app-card">
-      <strong>Status</strong>
-      <span>{{ pageMessage() }}</span>
-    </section>
-  }
-
   <div class="history-list">
     @if (filteredSales().length === 0) {
       <p class="app-muted" style="text-align:center;padding:2rem 0">Nema rezultata.</p>

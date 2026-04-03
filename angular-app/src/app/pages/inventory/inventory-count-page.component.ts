@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Component, computed, inject, signal } from '@angular/core';
 import { InventoryCount } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 @Component({
   selector: 'app-inventory-count-page',
@@ -13,12 +14,12 @@ import { MockStoreService } from '../../shared/mock-store.service';
 })
 export class InventoryCountPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly location = inject(Location);
   private readonly products = this.store.products;
 
   protected readonly activeCount = signal<InventoryCount | null>(null);
   protected readonly actualStocks = signal<Record<string, number>>({});
-  protected readonly pageMessage = signal<string | null>(null);
   protected readonly counts = this.store.inventoryCounts;
 
   protected startNewCount(): void {
@@ -41,7 +42,6 @@ export class InventoryCountPageComponent {
       })),
     });
     this.actualStocks.set(stocks);
-    this.pageMessage.set(null);
   }
 
   protected goBack(): void {
@@ -74,7 +74,7 @@ export class InventoryCountPageComponent {
     const count = await this.store.recordInventoryCount(completedItems);
     this.activeCount.set(null);
     this.actualStocks.set({});
-    this.pageMessage.set(`Inventura zavrsena: ${count.items.length} artikala.`);
+    this.snackbar.success(`Inventura završena: ${count.items.length} artikala.`);
   }
 
   protected discrepancyCount(count: InventoryCount): number {

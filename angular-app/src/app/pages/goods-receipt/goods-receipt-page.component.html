@@ -15,12 +15,6 @@
     </div>
   </header>
 
-  @if (savedMessage()) {
-    <section class="status-banner app-card">
-      <span>{{ savedMessage() }}</span>
-    </section>
-  }
-
   @if (receipts().length === 0) {
     <div class="empty-state">
       <p>Nema evidentiranih nabavki.</p>
