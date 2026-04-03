@@ -225,16 +225,11 @@
   border-radius: 0.5rem;
   background: transparent;
   color: hsl(var(--muted-foreground));
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
-.product-entry:hover .product-entry__delete,
-.product-entry:focus-within .product-entry__delete {
-  opacity: 1;
-}
-
-.product-entry__delete:hover {
+.product-entry__delete:hover,
+.product-entry__delete:active {
   color: hsl(var(--destructive));
   background: hsl(var(--destructive) / 0.08);
 }
