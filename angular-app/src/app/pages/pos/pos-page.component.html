@@ -3,13 +3,6 @@
     <h1>Prodaja</h1>
   </header>
 
-  @if (pageMessage()) {
-    <section class="status-banner app-card">
-      <strong>Status</strong>
-      <span>{{ pageMessage() }}</span>
-    </section>
-  }
-
   <section class="search-row">
     <label class="search-box app-card">
       <span class="search-box__icon">
@@ -71,7 +64,7 @@
     </section>
   }
 
-  @if (cart().length === 0 && !lastSale()) {
+  @if (cart().length === 0) {
     <section class="empty-state">
       <div class="empty-state__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24">
@@ -236,86 +229,4 @@
     </section>
   }
 
-  @if (lastSale() && cart().length === 0) {
-    <section class="sale-result app-card">
-      <div>
-        <h2>Poslednji račun</h2>
-        <p class="app-muted">
-          {{ lastSale()!.receiptNumber }} · {{ formatDate(lastSale()!.date) }} {{ formatTime(lastSale()!.date) }}
-        </p>
-      </div>
-
-      <div class="sale-result__actions">
-        <button type="button" class="secondary-button" (click)="printBrowser()">Browser print</button>
-        @if (serialSupported) {
-          <button type="button" class="primary-button" (click)="printThermal()">Termički štampač</button>
-        }
-        <button type="button" class="secondary-button" (click)="clearLastSale()">Zatvori</button>
-      </div>
-    </section>
-  }
-
-  @if (lastSale()) {
-    <section class="receipt-print hidden print:block">
-      <div class="receipt-print__body">
-        <div class="receipt-print__center">
-          <div class="receipt-print__title">GVOZDARA</div>
-          <div>Ulica Primer 1, Beograd</div>
-          <div>Tel: 011/123-4567</div>
-        </div>
-
-        <div class="receipt-print__divider"></div>
-
-        <div class="receipt-print__meta">
-          <span>Račun: {{ lastSale()!.receiptNumber }}</span>
-          <span>{{ formatDate(lastSale()!.date) }} {{ formatTime(lastSale()!.date) }}</span>
-        </div>
-
-        <div class="receipt-print__divider"></div>
-
-        @for (item of lastSale()!.items; track item.product.id) {
-          <div class="receipt-print__item">
-            <div class="receipt-print__item-name">{{ item.product.name }}</div>
-            <div class="receipt-print__item-meta">
-              <span>{{ item.product.sku }}</span>
-              <span>{{ item.quantity }}{{ unitLabels[item.product.unit] }}</span>
-              <span>{{ formatCurrency(item.product.sellingPrice) }}</span>
-              <span>{{ formatCurrency(itemTotal(item)) }}</span>
-            </div>
-            @if (item.discount) {
-              <div class="receipt-print__item-discount">
-                Popust: {{ item.discount.type === 'percent' ? item.discount.value + '%' : formatCurrency(item.discount.value) + ' RSD' }}
-              </div>
-            }
-          </div>
-        }
-
-        <div class="receipt-print__divider"></div>
-
-        @if (lastSale()!.discount) {
-          <div class="receipt-print__summary-row">
-            <span>Međuzbir</span>
-            <span>{{ formatCurrency(lastSale()!.subtotal) }} RSD</span>
-          </div>
-          <div class="receipt-print__summary-row">
-            <span>Popust</span>
-            <span>-{{ formatCurrency(lastSale()!.subtotal - lastSale()!.total) }} RSD</span>
-          </div>
-        }
-
-        <div class="receipt-print__summary-row receipt-print__summary-row--total">
-          <span>UKUPNO</span>
-          <span>{{ formatCurrency(lastSale()!.total) }} RSD</span>
-        </div>
-
-        <div class="receipt-print__summary-row">
-          <span>Plaćanje</span>
-          <span>Gotovina</span>
-        </div>
-
-        <div class="receipt-print__divider"></div>
-        <div class="receipt-print__center">Hvala na kupovini!</div>
-      </div>
-    </section>
-  }
 </section>

@@ -8,8 +8,7 @@
   justify-content: space-between;
 }
 
-.pos-header h1,
-.sale-result h2 {
+.pos-header h1 {
   margin: 0;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
@@ -35,12 +34,6 @@
   stroke-linejoin: round;
 }
 
-.status-banner {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 1rem;
-}
 
 .search-row {
   display: grid;
@@ -185,8 +178,7 @@
   text-align: center;
 }
 
-.suggested-products,
-.sale-result {
+.suggested-products {
   display: grid;
   gap: 0.75rem;
 }
@@ -197,8 +189,7 @@
 }
 
 .cart-item__head,
-.cart-item__footer,
-.sale-result__actions {
+.cart-item__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -246,8 +237,7 @@
 }
 
 
-.suggested-product,
-.sale-result {
+.suggested-product {
   padding: 1rem;
 }
 
@@ -520,58 +510,6 @@
 }
 
 
-.sale-result__actions {
-  flex-wrap: wrap;
-}
-
-.receipt-print {
-  display: none;
-}
-
-.receipt-print__body {
-  width: 300px;
-  margin: 0 auto;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: black;
-}
-
-.receipt-print__center {
-  text-align: center;
-}
-
-.receipt-print__title {
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.receipt-print__divider {
-  border-top: 1px dashed black;
-  margin: 0.35rem 0;
-}
-
-.receipt-print__meta,
-.receipt-print__item-meta,
-.receipt-print__summary-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.receipt-print__item-name {
-  font-weight: 700;
-}
-
-.receipt-print__item-discount {
-  text-align: right;
-  color: #6b7280;
-}
-
-.receipt-print__summary-row--total {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
 @media (max-width: 720px) {
   .discount-editor {
     grid-template-columns: 1fr 1fr;
@@ -594,12 +532,3 @@
   }
 }
 
-@media print {
-  .pos-page > :not(.receipt-print) {
-    display: none !important;
-  }
-
-  .receipt-print {
-    display: block;
-  }
-}

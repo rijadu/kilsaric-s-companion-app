@@ -12,6 +12,21 @@
     <router-outlet />
   </main>
 
+  @if (snackbar.current(); as snack) {
+    <div class="snackbar" [class.snackbar--error]="snack.type === 'error'">
+      @if (snack.type === 'success') {
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="snackbar__icon">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="snackbar__icon">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      }
+      <span>{{ snack.message }}</span>
+    </div>
+  }
+
   <nav class="bottom-nav">
     <div class="bottom-nav__inner">
       @for (item of navItems; track item.path) {

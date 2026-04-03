@@ -5,26 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Html5Qrcode } from 'html5-qrcode';
 import { CartItem, Product, getItemTotal } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
-import {
-  ReceiptData,
-  isSerialSupported,
-  printReceiptSerial,
-} from '../../shared/thermal-printer';
+import { SnackbarService } from '../../shared/snackbar.service';
 
 type DiscountType = 'percent' | 'fixed';
-
-interface ReceiptSnapshot {
-  items: CartItem[];
-  subtotal: number;
-  discount?: {
-    type: DiscountType;
-    value: number;
-  };
-  total: number;
-  method: 'cash';
-  receiptNumber: string;
-  date: Date;
-}
 
 @Component({
   selector: 'app-pos-page',
@@ -35,6 +18,7 @@ interface ReceiptSnapshot {
 })
 export class PosPageComponent {
   private readonly store = inject(MockStoreService);
+  private readonly snackbar = inject(SnackbarService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly queryParams = toSignal(this.route.queryParamMap, {
@@ -44,7 +28,6 @@ export class PosPageComponent {
   private scanner: Html5Qrcode | null = null;
 
   protected readonly scannerRegionId = 'pos-scanner-region';
-  protected readonly serialSupported = isSerialSupported();
   protected readonly search = signal('');
   protected readonly cart = signal<CartItem[]>([]);
   protected readonly scanning = signal(false);
@@ -58,8 +41,6 @@ export class PosPageComponent {
   protected readonly editingItemDiscountId = signal<string | null>(null);
   protected readonly itemDiscountInput = signal('');
   protected readonly itemDiscountType = signal<DiscountType>('percent');
-  protected readonly lastSale = signal<ReceiptSnapshot | null>(null);
-  protected readonly pageMessage = signal<string | null>(null);
 
   protected readonly searchResults = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -109,7 +90,7 @@ export class PosPageComponent {
       const product = this.products().find((entry) => entry.id === addId);
       if (product) {
         this.addToCart(product, false);
-        this.pageMessage.set(`${product.name} dodat u korpu.`);
+        this.snackbar.success(`${product.name} dodat u korpu.`);
       }
 
       void this.router.navigate([], {
@@ -155,12 +136,12 @@ export class PosPageComponent {
   protected addToCartByBarcode(rawCode: string): void {
     const product = this.store.findProductByCode(rawCode);
     if (!product) {
-      this.pageMessage.set(`Proizvod nije pronađen: ${rawCode}`);
+      this.snackbar.error(`Proizvod nije pronađen: ${rawCode}`);
       return;
     }
 
     this.addToCart(product);
-    this.pageMessage.set(`${product.name} dodat u korpu.`);
+    this.snackbar.success(`${product.name} dodat u korpu.`);
   }
 
   protected submitSearch(): void {
@@ -300,7 +281,7 @@ export class PosPageComponent {
       );
     } catch (error) {
       this.scanning.set(false);
-      this.pageMessage.set(`Kamera nije mogla da se pokrene: ${this.formatError(error)}`);
+      this.snackbar.error(`Kamera nije mogla da se pokrene: ${this.formatError(error)}`);
     }
   }
 
@@ -333,68 +314,14 @@ export class PosPageComponent {
     });
 
     if (!sale) {
-      this.pageMessage.set('Prodaja nije mogla da se sačuva. Proverite stanje artikala.');
+      this.snackbar.error('Prodaja nije mogla da se sačuva. Proverite stanje artikala.');
       return;
     }
-
-    const saleDate = new Date(sale.date);
-    const receiptNumber = this.generateReceiptNumber(saleDate);
-    this.lastSale.set({
-      items: sale.items,
-      subtotal: sale.subtotal,
-      discount: sale.discount,
-      total: sale.total,
-      method: 'cash',
-      receiptNumber,
-      date: saleDate,
-    });
 
     this.cart.set([]);
     this.cartDiscount.set(null);
     this.showCartDiscount.set(false);
-    this.pageMessage.set(
-      `Prodaja je završena: ${this.formatCurrency(sale.total)} RSD · Gotovina.`,
-    );
-  }
-
-  protected clearLastSale(): void {
-    this.lastSale.set(null);
-  }
-
-  protected printBrowser(): void {
-    window.print();
-  }
-
-  protected async printThermal(): Promise<void> {
-    const sale = this.lastSale();
-    if (!sale) {
-      return;
-    }
-
-    const receiptData: ReceiptData = {
-      shopName: 'GVOZDARA',
-      shopAddress: 'Ulica Primer 1, Beograd',
-      shopPhone: '011/123-4567',
-      receiptNumber: sale.receiptNumber,
-      date: sale.date,
-      items: sale.items.map((item) => ({
-        name: item.product.name,
-        sku: item.product.sku,
-        quantity: item.quantity,
-        unit: item.product.unit,
-        price: item.product.sellingPrice,
-        total: getItemTotal(item),
-      })),
-      total: sale.total,
-      paymentMethod: sale.method,
-    };
-
-    try {
-      await printReceiptSerial(receiptData);
-      this.pageMessage.set('Račun je poslat na termički štampač.');
-    } catch (error) {
-      this.pageMessage.set(`Stampa nije uspela: ${this.formatError(error)}`);
-    }
+    this.snackbar.success(`Prodaja završena: ${this.formatCurrency(sale.total)} RSD.`);
   }
 
   ngOnDestroy(): void {
@@ -403,21 +330,6 @@ export class PosPageComponent {
 
   protected formatCurrency(value: number): string {
     return new Intl.NumberFormat('sr-RS').format(Math.round(value));
-  }
-
-  protected formatDate(value: Date): string {
-    return value.toLocaleDateString('sr-RS', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  }
-
-  protected formatTime(value: Date): string {
-    return value.toLocaleTimeString('sr-RS', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   protected itemBaseTotal(item: CartItem): number {
@@ -447,10 +359,6 @@ export class PosPageComponent {
     return discount.type === 'percent'
       ? base * (1 - discount.value / 100)
       : Math.max(0, base - discount.value);
-  }
-
-  private generateReceiptNumber(date: Date): string {
-    return `R-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
   }
 
   private formatError(error: unknown): string {
