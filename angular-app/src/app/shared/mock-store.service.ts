@@ -501,6 +501,11 @@ export class MockStoreService {
     return updated;
   }
 
+  async deleteProduct(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(`${BASE}/products/${id}`));
+    this._products.update((list) => list.filter((p) => p.id !== id));
+  }
+
   async applyStockCorrection(
     productId: string,
     quantity: number,

@@ -1,6 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, Variant } from '../../shared/mock-data';
@@ -32,7 +32,6 @@ export class ProductFormPageComponent {
   });
 
   protected readonly isEdit = signal(false);
-  protected readonly submitted = signal(false);
   protected readonly editingProductId = signal<string | null>(null);
   protected readonly categories = this.store.availableCategories;
   protected readonly brands = this.store.availableBrands;
@@ -45,15 +44,15 @@ export class ProductFormPageComponent {
   ];
 
   protected readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    sku: ['', Validators.required],
+    name: [''],
+    sku: [''],
     barcode: [''],
     category: [''],
     subcategory: [''],
     brand: [''],
     description: [''],
     costPrice: [''],
-    sellingPrice: ['', Validators.required],
+    sellingPrice: [''],
     bulkPrice: [''],
     bulkMinQty: [''],
     unit: ['piece' as ProductUnit],
@@ -142,18 +141,7 @@ export class ProductFormPageComponent {
   }
 
   protected async save(): Promise<void> {
-    this.submitted.set(true);
-
-    if (this.form.invalid) {
-      this.snackbar.error('Popunite obavezna polja: naziv, SKU i prodajna cena.');
-      return;
-    }
-
     const payload = this.buildProductPayload();
-    if (!payload) {
-      this.snackbar.error('Forma nije mogla da se sačuva.');
-      return;
-    }
 
     if (this.isEdit() && this.editingProductId()) {
       await this.store.updateProduct({
@@ -255,12 +243,9 @@ export class ProductFormPageComponent {
     });
   }
 
-  private buildProductPayload(): Omit<Product, 'id'> | null {
+  private buildProductPayload(): Omit<Product, 'id'> {
     const raw = this.form.getRawValue();
     const sellingPrice = this.parseNumber(raw.sellingPrice);
-    if (!raw.name.trim() || !raw.sku.trim() || sellingPrice <= 0) {
-      return null;
-    }
 
     const rawVariants = raw.variants as Array<{
       id: string;

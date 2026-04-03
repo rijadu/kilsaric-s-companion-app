@@ -111,9 +111,19 @@
 
   <div class="products-list">
     @for (product of products(); track product.id) {
-      <a class="product-entry" [routerLink]="['/products/edit', product.id]">
+      <div class="product-entry">
         <app-product-card [product]="product" />
-      </a>
+        <button
+          type="button"
+          class="product-entry__delete"
+          (click)="deleteProduct(product.id, product.name)"
+          aria-label="Obriši"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+          </svg>
+        </button>
+      </div>
     } @empty {
       <div class="empty-state">
         <p>Nema rezultata</p>

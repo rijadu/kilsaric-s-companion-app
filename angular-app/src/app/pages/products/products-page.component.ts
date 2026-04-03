@@ -106,6 +106,13 @@ export class ProductsPageComponent {
     });
   }
 
+  protected async deleteProduct(id: string, name: string): Promise<void> {
+    if (!confirm(`Obrisati "${name}"? Ova radnja se ne može poništiti.`)) return;
+    await this.store.deleteProduct(id);
+    this.snackbar.success(`"${name}" je obrisan.`);
+    this.correctionProductId.set(null);
+  }
+
   protected toggleCorrection(productId: string): void {
     this.correctionProductId.set(
       this.correctionProductId() === productId ? null : productId,
