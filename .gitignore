@@ -5,6 +5,16 @@ backend/.env
 .tmp/
 ANGULAR_MIGRATION.md
 
+# Angular cache
+angular-app/.angular/
+
+# Backend build artifacts
+backend/dist/
+backend/tsconfig.tsbuildinfo
+backend/prisma/seed.js
+backend/prisma/seed.js.map
+backend/prisma/seed.d.ts
+
 # Logs
 logs
 *.log
