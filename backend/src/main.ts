@@ -8,8 +8,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:4200',
       'http://localhost:4201',
-      'https://ki-one-xi.vercel.app',
-      'https://klisaric-gvozdjara.vercel.app/'
+      'https://klisaric-gvozdjara.vercel.app'
     ],
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
