@@ -22,35 +22,43 @@ export class VariantDto {
 }
 
 export class CreateProductDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
+  @IsOptional()
   @IsString()
-  sku: string;
+  sku?: string;
 
+  @IsOptional()
   @IsString()
-  barcode: string;
+  barcode?: string;
 
+  @IsOptional()
   @IsString()
-  category: string;
+  category?: string;
 
   @IsOptional()
   @IsString()
   subcategory?: string;
 
+  @IsOptional()
   @IsString()
-  brand: string;
+  brand?: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  costPrice: number;
+  costPrice?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  sellingPrice: number;
+  sellingPrice?: number;
 
   @IsOptional()
   @IsNumber()
@@ -60,23 +68,27 @@ export class CreateProductDto {
   @IsNumber()
   bulkMinQty?: number;
 
+  @IsOptional()
   @IsEnum(['piece', 'kg', 'meter', 'liter', 'box'])
-  unit: 'piece' | 'kg' | 'meter' | 'liter' | 'box';
+  unit?: 'piece' | 'kg' | 'meter' | 'liter' | 'box';
 
   @IsOptional()
   @IsNumber()
   packSize?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  stock: number;
+  stock?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  lowStockThreshold: number;
+  lowStockThreshold?: number;
 
+  @IsOptional()
   @IsEnum(['active', 'inactive'])
-  status: 'active' | 'inactive';
+  status?: 'active' | 'inactive';
 
   @IsOptional()
   @IsString()
