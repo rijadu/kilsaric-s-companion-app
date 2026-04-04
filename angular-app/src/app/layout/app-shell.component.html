@@ -1,8 +1,8 @@
 <div class="shell">
   @if (loading()) {
-    <div class="shell__loading">
-      <span class="shell__loading-spinner"></span>
-      <span>Učitavanje...</span>
+    <div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background">
+      <div class="h-10 w-10 rounded-full border-4 border-border border-t-primary animate-spin"></div>
+      <p class="text-sm text-muted-foreground">Učitavanje...</p>
     </div>
   }
   @if (error()) {
