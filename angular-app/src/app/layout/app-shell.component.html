@@ -9,7 +9,9 @@
     <div class="shell__error">{{ error() }}</div>
   }
   <main class="shell__content">
-    <router-outlet />
+    @if (!loading()) {
+      <router-outlet />
+    }
   </main>
 
   <app-dialog />
