@@ -7,11 +7,11 @@ import {
   Customer,
   GoodsReceipt,
   InventoryCount,
+  InventoryLot,
   Product,
   Sale,
   StockChange,
   Supplier,
-  Variant,
   brands,
   categories,
   getProfit,
@@ -50,9 +50,12 @@ interface ApiSaleItem {
   costPrice: number;
   sellingPrice: number;
   unit: string;
-  variantId?: string;
-  variantName?: string;
   quantity: number;
+  lotAllocations?: Array<{
+    inventoryLotId: string;
+    quantity: number;
+    unitCost: number;
+  }>;
   discountType?: string;
   discountValue?: number;
   lineTotal: number;
@@ -93,6 +96,7 @@ interface ApiGoodsReceiptItem {
   costPrice: number;
   sellingPrice?: number;
   unit?: Product['unit'];
+  inventoryLots?: ApiInventoryLot[];
 }
 
 interface ApiGoodsReceipt {
@@ -115,6 +119,25 @@ interface ApiInventoryCount {
     actualStock: number;
     difference: number;
   }>;
+}
+
+interface ApiInventoryLot {
+  id: string;
+  sourceType: InventoryLot['sourceType'];
+  unitCost: number;
+  receivedQty: number;
+  remainingQty: number;
+  receivedAt: string;
+  receiptItem?: {
+    receipt?: {
+      supplierName: string;
+      date: string;
+    };
+  };
+}
+
+interface ApiProduct extends Omit<Product, 'inventoryLots'> {
+  inventoryLots?: ApiInventoryLot[];
 }
 
 // ── Exported public types (unchanged — components depend on these) ────────────
@@ -189,18 +212,34 @@ function mapSaleItem(item: ApiSaleItem): CartItem {
     lowStockThreshold: 0,
     status: 'active',
   };
-  const variant: Variant | undefined =
-    item.variantId
-      ? { id: item.variantId, name: item.variantName ?? '', sku: '', stock: 0 }
-      : undefined;
   return {
     product,
-    variant,
     quantity: item.quantity,
+    lotAllocations: item.lotAllocations,
     discount:
       item.discountType && item.discountValue != null
         ? { type: item.discountType as 'percent' | 'fixed', value: item.discountValue }
         : undefined,
+  };
+}
+
+function mapInventoryLot(lot: ApiInventoryLot): InventoryLot {
+  return {
+    id: lot.id,
+    sourceType: lot.sourceType,
+    unitCost: lot.unitCost,
+    receivedQty: lot.receivedQty,
+    remainingQty: lot.remainingQty,
+    receivedAt: lot.receivedAt,
+    supplierName: lot.receiptItem?.receipt?.supplierName,
+    receiptDate: lot.receiptItem?.receipt?.date,
+  };
+}
+
+function mapProduct(p: ApiProduct): Product {
+  return {
+    ...p,
+    inventoryLots: p.inventoryLots?.map(mapInventoryLot) ?? [],
   };
 }
 
@@ -249,6 +288,7 @@ function mapGoodsReceipt(r: ApiGoodsReceipt): GoodsReceipt {
       costPrice: item.costPrice,
       sellingPrice: item.sellingPrice ?? 0,
       unit: item.unit ?? 'piece',
+      inventoryLots: item.inventoryLots?.map(mapInventoryLot) ?? [],
     })),
     totalCost: r.totalCost,
     date: r.date,
@@ -291,6 +331,7 @@ export class MockStoreService {
   private readonly _inventoryCounts = signal<InventoryCount[]>([]);
   private readonly _loading = signal(true);
   private readonly _error = signal<string | null>(null);
+  private mutationVersion = 0;
 
   // ── Public read-only signals (same names as before) ────────────────────────
   readonly products = this._products.asReadonly();
@@ -442,10 +483,12 @@ export class MockStoreService {
   }
 
   private async loadAll(): Promise<void> {
+    const startedAtMutationVersion = this.mutationVersion;
+    this._error.set(null);
     try {
       const [products, customers, suppliers, sales, stockChanges, goodsReceipts, inventoryCounts] =
         await Promise.all([
-          firstValueFrom(this.http.get<Product[]>(`${BASE}/products`)),
+          firstValueFrom(this.http.get<ApiProduct[]>(`${BASE}/products`)),
           firstValueFrom(this.http.get<ApiCustomer[]>(`${BASE}/customers`)),
           firstValueFrom(this.http.get<ApiSupplier[]>(`${BASE}/suppliers`)),
           firstValueFrom(this.http.get<ApiSale[]>(`${BASE}/sales`)),
@@ -454,7 +497,11 @@ export class MockStoreService {
           firstValueFrom(this.http.get<ApiInventoryCount[]>(`${BASE}/stock/inventory-counts`)),
         ]);
 
-      this._products.set(products);
+      if (startedAtMutationVersion !== this.mutationVersion) {
+        return;
+      }
+
+      this._products.set((products as ApiProduct[]).map(mapProduct));
       this._customers.set(customers.map(mapCustomer));
       this._suppliers.set(suppliers.map(mapSupplier));
       this._sales.set(sales.map(mapSale));
@@ -466,6 +513,11 @@ export class MockStoreService {
     } finally {
       this._loading.set(false);
     }
+  }
+
+  private async refreshAll(): Promise<void> {
+    this._loading.set(true);
+    await this.loadAll();
   }
 
   // ── Products ───────────────────────────────────────────────────────────────
@@ -487,22 +539,27 @@ export class MockStoreService {
 
   async createProduct(product: Omit<Product, 'id'>): Promise<Product> {
     const created = await firstValueFrom(
-      this.http.post<Product>(`${BASE}/products`, this.toProductDto(product)),
+      this.http.post<ApiProduct>(`${BASE}/products`, this.toProductDto(product)),
     );
-    this._products.update((list) => [created, ...list]);
-    return created;
+    const mapped = mapProduct(created);
+    this.mutationVersion += 1;
+    this._products.update((list) => [mapped, ...list]);
+    return mapped;
   }
 
   async updateProduct(product: Product): Promise<Product | undefined> {
     const updated = await firstValueFrom(
-      this.http.patch<Product>(`${BASE}/products/${product.id}`, this.toProductDto(product)),
+      this.http.patch<ApiProduct>(`${BASE}/products/${product.id}`, this.toProductDto(product)),
     );
-    this._products.update((list) => list.map((p) => (p.id === product.id ? updated : p)));
-    return updated;
+    const mapped = mapProduct(updated);
+    this.mutationVersion += 1;
+    this._products.update((list) => list.map((p) => (p.id === product.id ? mapped : p)));
+    return mapped;
   }
 
   async deleteProduct(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(`${BASE}/products/${id}`));
+    this.mutationVersion += 1;
     this._products.update((list) => list.filter((p) => p.id !== id));
   }
 
@@ -514,10 +571,8 @@ export class MockStoreService {
     const change = await firstValueFrom(
       this.http.post<ApiStockChange>(`${BASE}/stock/correction`, { productId, quantity, note }),
     );
-    this._stockChanges.update((list) => [mapStockChange(change), ...list]);
-    this._products.update((list) =>
-      list.map((p) => (p.id === productId ? { ...p, stock: change.newStock } : p)),
-    );
+    this.mutationVersion += 1;
+    await this.refreshAll();
     return { previousStock: change.previousStock, newStock: change.newStock };
   }
 
@@ -531,6 +586,7 @@ export class MockStoreService {
       this.http.post<ApiCustomer>(`${BASE}/customers`, this.toCustomerDto(customer)),
     );
     const mapped = mapCustomer(created);
+    this.mutationVersion += 1;
     this._customers.update((list) => [mapped, ...list]);
     return mapped;
   }
@@ -543,12 +599,14 @@ export class MockStoreService {
       ),
     );
     const mapped = mapCustomer(updated);
+    this.mutationVersion += 1;
     this._customers.update((list) => list.map((c) => (c.id === customer.id ? mapped : c)));
     return mapped;
   }
 
   async deleteCustomer(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(`${BASE}/customers/${id}`));
+    this.mutationVersion += 1;
     this._customers.update((list) => list.filter((c) => c.id !== id));
   }
 
@@ -569,6 +627,7 @@ export class MockStoreService {
       }),
     );
     const mapped = mapSupplier(created);
+    this.mutationVersion += 1;
     this._suppliers.update((list) => [mapped, ...list]);
     return mapped;
   }
@@ -585,12 +644,14 @@ export class MockStoreService {
       }),
     );
     const mapped = mapSupplier(updated);
+    this.mutationVersion += 1;
     this._suppliers.update((list) => list.map((s) => (s.id === supplier.id ? mapped : s)));
     return mapped;
   }
 
   async deleteSupplier(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(`${BASE}/suppliers/${id}`));
+    this.mutationVersion += 1;
     this._suppliers.update((list) => list.filter((s) => s.id !== id));
   }
 
@@ -608,7 +669,6 @@ export class MockStoreService {
       this.http.post<ApiSale>(`${BASE}/sales`, {
         items: input.items.map((i) => ({
           productId: i.product.id,
-          variantId: i.variant?.id,
           quantity: i.quantity,
           discountType: i.discount?.type,
           discountValue: i.discount?.value,
@@ -622,16 +682,9 @@ export class MockStoreService {
     );
 
     const mapped = mapSale(apiSale);
+    this.mutationVersion += 1;
     this._sales.update((list) => [mapped, ...list]);
-
-    // Deduct stock locally so UI reflects the change immediately
-    for (const item of apiSale.items) {
-      this._products.update((list) =>
-        list.map((p) =>
-          p.id === item.productId ? { ...p, stock: Math.max(0, p.stock - item.quantity) } : p,
-        ),
-      );
-    }
+    await this.refreshAll();
 
     return mapped;
   }
@@ -655,16 +708,9 @@ export class MockStoreService {
       this.http.post<ApiSale>(`${BASE}/sales/${saleId}/refund`, { reason }),
     );
     const mapped = mapSale(apiSale);
+    this.mutationVersion += 1;
     this._sales.update((list) => list.map((s) => (s.id === saleId ? mapped : s)));
-
-    // Restore stock locally
-    for (const item of apiSale.items) {
-      this._products.update((list) =>
-        list.map((p) =>
-          p.id === item.productId ? { ...p, stock: p.stock + item.quantity } : p,
-        ),
-      );
-    }
+    await this.refreshAll();
 
     const restoredItems = apiSale.items.reduce((sum, i) => sum + i.quantity, 0);
     return { refundDate: apiSale.refundDate ?? new Date().toISOString(), restoredItems };
@@ -696,59 +742,46 @@ export class MockStoreService {
     const mapped: GoodsReceipt = {
       id: created.id,
       supplier: created.supplierName,
-      items: receipt.items,
+      items: created.items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        costPrice: item.costPrice,
+        sellingPrice: item.sellingPrice ?? 0,
+        unit: item.unit ?? 'piece',
+        inventoryLots: item.inventoryLots?.map(mapInventoryLot) ?? [],
+      })),
       totalCost: created.totalCost,
       date: created.date,
       note: created.note,
     };
+    this.mutationVersion += 1;
     this._goodsReceipts.update((list) => [mapped, ...list]);
-
-    for (const item of receipt.items) {
-      this._products.update((list) =>
-        list.map((p) =>
-          p.id === item.productId
-            ? {
-                ...p,
-                stock: p.stock + item.quantity,
-                costPrice: item.costPrice,
-                sellingPrice: item.sellingPrice,
-              }
-            : p,
-        ),
-      );
-    }
+    await this.refreshAll();
 
     return mapped;
   }
 
-  updateGoodsReceipt(
+  async updateGoodsReceipt(
     id: string,
     changes: { supplier: string; note?: string; items: GoodsReceipt['items'] },
-  ): void {
-    this._goodsReceipts.update((list) =>
-      list.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              supplier: changes.supplier.trim() || 'Nepoznat',
-              note: changes.note,
-              items: changes.items,
-              totalCost: changes.items.reduce((s, i) => s + i.quantity * i.costPrice, 0),
-            }
-          : r,
-      ),
+  ): Promise<void> {
+    await firstValueFrom(
+      this.http.patch<ApiGoodsReceipt>(`${BASE}/stock/receipts/${id}`, {
+        supplierName: changes.supplier.trim() || 'Nepoznat',
+        note: changes.note,
+        items: changes.items.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          costPrice: item.costPrice,
+          sellingPrice: item.sellingPrice,
+          unit: item.unit,
+        })),
+      }),
     );
-
-    // Update product prices to match edited receipt
-    for (const item of changes.items) {
-      this._products.update((list) =>
-        list.map((p) =>
-          p.id === item.productId
-            ? { ...p, costPrice: item.costPrice, sellingPrice: item.sellingPrice }
-            : p,
-        ),
-      );
-    }
+    this.mutationVersion += 1;
+    await this.refreshAll();
   }
 
   async recordInventoryCount(items: InventoryCount['items']): Promise<InventoryCount> {
@@ -756,13 +789,9 @@ export class MockStoreService {
       this.http.post<ApiInventoryCount>(`${BASE}/stock/inventory-counts`, { items }),
     );
     const mapped = mapInventoryCount(created);
+    this.mutationVersion += 1;
     this._inventoryCounts.update((list) => [mapped, ...list]);
-
-    for (const item of items) {
-      this._products.update((list) =>
-        list.map((p) => (p.id === item.productId ? { ...p, stock: item.actualStock } : p)),
-      );
-    }
+    await this.refreshAll();
 
     return mapped;
   }
@@ -833,7 +862,6 @@ export class MockStoreService {
       image: product.image,
       expiryDate: product.expiryDate,
       warrantyMonths: product.warrantyMonths,
-      variants: product.variants,
     };
   }
 

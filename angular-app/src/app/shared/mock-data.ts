@@ -17,9 +17,20 @@ export interface Product {
   lowStockThreshold: number;
   status: 'active' | 'inactive';
   image?: string;
-  variants?: Variant[];
+  inventoryLots?: InventoryLot[];
   expiryDate?: string;
   warrantyMonths?: number;
+}
+
+export interface InventoryLot {
+  id: string;
+  sourceType: 'initial' | 'receipt' | 'correction' | 'inventory';
+  unitCost: number;
+  receivedQty: number;
+  remainingQty: number;
+  receivedAt: string;
+  supplierName?: string;
+  receiptDate?: string;
 }
 
 export type StockChangeType = 'sale' | 'receipt' | 'correction' | 'refund' | 'inventory';
@@ -39,7 +50,7 @@ export interface StockChange {
 export interface GoodsReceipt {
   id: string;
   supplier: string;
-  items: { productId: string; productName: string; quantity: number; costPrice: number; sellingPrice: number; unit: Product['unit'] }[];
+  items: { productId: string; productName: string; quantity: number; costPrice: number; sellingPrice: number; unit: Product['unit']; inventoryLots?: InventoryLot[] }[];
   totalCost: number;
   date: string;
   note?: string;
@@ -69,19 +80,10 @@ export const getProfit = (item: CartItem): number => {
   return revenue - cost;
 };
 
-export interface Variant {
-  id: string;
-  name: string;
-  sku: string;
-  barcode?: string;
-  stock: number;
-  priceOverride?: number;
-}
-
 export interface CartItem {
   product: Product;
-  variant?: Variant;
   quantity: number;
+  lotAllocations?: { inventoryLotId: string; quantity: number; unitCost: number }[];
   discount?: {
     type: 'percent' | 'fixed';
     value: number;
@@ -151,10 +153,6 @@ export const mockProducts: Product[] = [
     category: 'Vijci i šarafi', subcategory: 'Vijci za drvo', brand: 'Würth', description: 'Vijci za drvo, ravna glava',
     costPrice: 2.5, sellingPrice: 4.0, bulkPrice: 3.2, bulkMinQty: 100, unit: 'piece', packSize: 100,
     stock: 2500, lowStockThreshold: 500, status: 'active',
-    variants: [
-      { id: 'v1', name: 'Inox', sku: 'VD-5050-I', stock: 800 },
-      { id: 'v2', name: 'Pocinkovani', sku: 'VD-5050-P', stock: 1700 },
-    ]
   },
   {
     id: '2', name: 'Bosch udarna bušilica GSB 13 RE', sku: 'BB-GSB13', barcode: '3165140379267',

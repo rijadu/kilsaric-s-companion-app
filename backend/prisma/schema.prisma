@@ -30,11 +30,11 @@ model Product {
   warrantyMonths    Int?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
-  variants          Variant[]
   stockChanges      StockChange[]
   saleItems         SaleItem[]
   receiptItems      GoodsReceiptItem[]
   inventoryItems    InventoryCountItem[]
+  inventoryLots     InventoryLot[]
 }
 
 enum ProductUnit {
@@ -48,17 +48,6 @@ enum ProductUnit {
 enum ProductStatus {
   active
   inactive
-}
-
-model Variant {
-  id            String  @id @default(uuid())
-  productId     String
-  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name          String
-  sku           String  @unique
-  barcode       String?
-  stock         Int     @default(0)
-  priceOverride Float?
 }
 
 model Customer {
@@ -124,12 +113,11 @@ model SaleItem {
   costPrice     Float
   sellingPrice  Float
   unit          String
-  variantId     String?
-  variantName   String?
   quantity      Int
   discountType  String?
   discountValue Float?
   lineTotal     Float
+  lotAllocations SaleItemLotAllocation[]
 }
 
 model StockChange {
@@ -173,6 +161,40 @@ model GoodsReceiptItem {
   productName String
   quantity    Int
   costPrice   Float
+  sellingPrice Float
+  unit        String
+  inventoryLots InventoryLot[]
+}
+
+model InventoryLot {
+  id              String                  @id @default(uuid())
+  productId       String
+  product         Product                 @relation(fields: [productId], references: [id])
+  receiptItemId   String?
+  receiptItem     GoodsReceiptItem?       @relation(fields: [receiptItemId], references: [id], onDelete: Cascade)
+  sourceType      InventoryLotSource      @default(receipt)
+  unitCost        Float
+  receivedQty     Int
+  remainingQty    Int
+  receivedAt      DateTime                @default(now())
+  saleAllocations SaleItemLotAllocation[]
+}
+
+enum InventoryLotSource {
+  initial
+  receipt
+  correction
+  inventory
+}
+
+model SaleItemLotAllocation {
+  id             String       @id @default(uuid())
+  saleItemId     String
+  saleItem       SaleItem     @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+  inventoryLotId String
+  inventoryLot   InventoryLot @relation(fields: [inventoryLotId], references: [id])
+  quantity       Int
+  unitCost       Float
 }
 
 model InventoryCount {

@@ -1,9 +1,9 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Product, Variant } from '../../shared/mock-data';
+import { Product } from '../../shared/mock-data';
 import { MockStoreService } from '../../shared/mock-store.service';
 import { SnackbarService } from '../../shared/snackbar.service';
 
@@ -33,6 +33,7 @@ export class ProductFormPageComponent {
 
   protected readonly isEdit = signal(false);
   protected readonly editingProductId = signal<string | null>(null);
+  protected readonly saveInProgress = signal(false);
   protected readonly categories = this.store.availableCategories;
   protected readonly brands = this.store.availableBrands;
   protected readonly units: { value: ProductUnit; label: string }[] = [
@@ -44,15 +45,15 @@ export class ProductFormPageComponent {
   ];
 
   protected readonly form = this.fb.nonNullable.group({
-    name: [''],
+    name: ['', Validators.required],
     sku: [''],
     barcode: [''],
-    category: [''],
+    category: ['', Validators.required],
     subcategory: [''],
     brand: [''],
     description: [''],
-    costPrice: [''],
-    sellingPrice: [''],
+    costPrice: ['', [Validators.required, Validators.min(0)]],
+    sellingPrice: ['', [Validators.required, Validators.min(0)]],
     bulkPrice: [''],
     bulkMinQty: [''],
     unit: ['piece' as ProductUnit],
@@ -62,7 +63,6 @@ export class ProductFormPageComponent {
     status: ['active' as ProductStatus],
     expiryDate: [''],
     warrantyMonths: [''],
-    variants: this.fb.array([]),
   });
 
   private readonly categoryValue = toSignal(
@@ -92,6 +92,16 @@ export class ProductFormPageComponent {
         bulkPrice > 0 ? ((bulkPrice - costPrice) / costPrice) * 100 : null,
     };
   });
+
+  protected readonly currentProduct = computed(() => {
+    const id = this.editingProductId();
+    return id ? this.store.getProductById(id) : undefined;
+  });
+
+  protected readonly activeLots = computed(() => this.currentProduct()?.inventoryLots ?? []);
+  protected readonly hasTrackedStock = computed(
+    () => (this.currentProduct()?.stock ?? 0) > 0 || this.activeLots().length > 0,
+  );
 
   constructor() {
     effect(() => {
@@ -128,36 +138,38 @@ export class ProductFormPageComponent {
     });
   }
 
-  protected get variants(): FormArray {
-    return this.form.controls.variants;
-  }
-
-  protected addVariant(): void {
-    this.variants.push(this.buildVariantGroup());
-  }
-
-  protected removeVariant(index: number): void {
-    this.variants.removeAt(index);
-  }
-
   protected async save(): Promise<void> {
-    const payload = this.buildProductPayload();
-
-    if (this.isEdit() && this.editingProductId()) {
-      await this.store.updateProduct({
-        ...payload,
-        id: this.editingProductId()!,
-      });
-      void this.router.navigate(['/products'], {
-        queryParams: { saved: 'updated' },
-      });
+    if (this.saveInProgress()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.snackbar.error('Popunite obavezna polja za proizvod.');
       return;
     }
 
-    await this.store.createProduct(payload);
-    void this.router.navigate(['/products'], {
-      queryParams: { saved: 'created' },
-    });
+    const payload = this.buildProductPayload();
+    this.saveInProgress.set(true);
+
+    try {
+      if (this.isEdit() && this.editingProductId()) {
+        await this.store.updateProduct({
+          ...payload,
+          id: this.editingProductId()!,
+        });
+        void this.router.navigate(['/products'], {
+          queryParams: { saved: 'updated' },
+        });
+        return;
+      }
+
+      await this.store.createProduct(payload);
+      void this.router.navigate(['/products'], {
+        queryParams: { saved: 'created' },
+      });
+    } catch {
+      this.snackbar.error('Proizvod nije sačuvan. Proverite podatke i pokušajte ponovo.');
+    } finally {
+      this.saveInProgress.set(false);
+    }
   }
 
   protected goBack(): void {
@@ -170,6 +182,30 @@ export class ProductFormPageComponent {
 
   protected formatCurrency(value: number): string {
     return new Intl.NumberFormat('sr-RS').format(Math.round(value));
+  }
+
+  protected formatDateTime(value?: string): string {
+    if (!value) return 'Ručno uneto';
+    return new Intl.DateTimeFormat('sr-RS', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  }
+
+  protected lotSourceLabel(source: NonNullable<Product['inventoryLots']>[number]['sourceType']): string {
+    switch (source) {
+      case 'initial':
+        return 'Početno stanje';
+      case 'receipt':
+        return 'Primka';
+      case 'correction':
+        return 'Korekcija';
+      case 'inventory':
+        return 'Inventura';
+    }
   }
 
   private resetForCreate(): void {
@@ -197,7 +233,6 @@ export class ProductFormPageComponent {
       { emitEvent: false },
     );
     this.lastCategory.set('');
-    this.variants.clear();
   }
 
   private patchProduct(product: Product): void {
@@ -225,47 +260,11 @@ export class ProductFormPageComponent {
       { emitEvent: false },
     );
     this.lastCategory.set(product.category);
-
-    this.variants.clear();
-    product.variants?.forEach((variant) => {
-      this.variants.push(this.buildVariantGroup(variant));
-    });
-  }
-
-  private buildVariantGroup(variant?: Variant) {
-    return this.fb.nonNullable.group({
-      id: [variant?.id ?? `v-new-${Date.now()}-${this.variants.length}`],
-      name: [variant?.name ?? ''],
-      sku: [variant?.sku ?? ''],
-      barcode: [variant?.barcode ?? ''],
-      stock: [variant ? String(variant.stock) : '0'],
-      priceOverride: [variant?.priceOverride ? String(variant.priceOverride) : ''],
-    });
   }
 
   private buildProductPayload(): Omit<Product, 'id'> {
     const raw = this.form.getRawValue();
     const sellingPrice = this.parseNumber(raw.sellingPrice);
-
-    const rawVariants = raw.variants as Array<{
-      id: string;
-      name: string;
-      sku: string;
-      barcode: string;
-      stock: string;
-      priceOverride: string;
-    }>;
-
-    const variants = rawVariants
-      .map((variant) => ({
-        id: variant.id,
-        name: variant.name.trim(),
-        sku: variant.sku.trim(),
-        barcode: variant.barcode.trim() || undefined,
-        stock: this.parseInteger(variant.stock),
-        priceOverride: this.parseOptionalNumber(variant.priceOverride),
-      }))
-      .filter((variant) => variant.name || variant.sku);
 
     return {
       name: raw.name.trim(),
@@ -286,7 +285,6 @@ export class ProductFormPageComponent {
       status: raw.status,
       expiryDate: raw.expiryDate || undefined,
       warrantyMonths: this.parseOptionalInteger(raw.warrantyMonths),
-      variants: variants.length > 0 ? variants : undefined,
     };
   }
 

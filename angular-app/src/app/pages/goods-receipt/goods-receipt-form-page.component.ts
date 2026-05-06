@@ -231,7 +231,7 @@ export class GoodsReceiptFormPageComponent implements OnDestroy {
     }
 
     if (this.editingId) {
-      this.store.updateGoodsReceipt(this.editingId, {
+      await this.store.updateGoodsReceipt(this.editingId, {
         supplier: this.supplier(),
         note: this.note(),
         items: this.items(),

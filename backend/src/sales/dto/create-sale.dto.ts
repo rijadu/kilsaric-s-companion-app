@@ -5,10 +5,6 @@ export class SaleItemDto {
   @IsString()
   productId: string;
 
-  @IsOptional()
-  @IsString()
-  variantId?: string;
-
   @IsNumber()
   @Min(1)
   quantity: number;

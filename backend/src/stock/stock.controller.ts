@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { StockCorrectionDto } from './dto/stock-correction.dto';
 import { CreateGoodsReceiptDto } from './dto/goods-receipt.dto';
@@ -26,6 +26,11 @@ export class StockController {
   @Post('receipts')
   createReceipt(@Body() dto: CreateGoodsReceiptDto) {
     return this.service.createReceipt(dto);
+  }
+
+  @Patch('receipts/:id')
+  updateReceipt(@Param('id') id: string, @Body() dto: CreateGoodsReceiptDto) {
+    return this.service.updateReceipt(id, dto);
   }
 
   @Get('inventory-counts')

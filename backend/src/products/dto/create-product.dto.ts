@@ -1,25 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsArray, ValidateNested, Min } from 'class-validator';
-import { Type } from 'class-transformer';
-
-export class VariantDto {
-  @IsString()
-  name: string;
-
-  @IsString()
-  sku: string;
-
-  @IsOptional()
-  @IsString()
-  barcode?: string;
-
-  @IsNumber()
-  @Min(0)
-  stock: number;
-
-  @IsOptional()
-  @IsNumber()
-  priceOverride?: number;
-}
+import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
 
 export class CreateProductDto {
   @IsOptional()
@@ -101,10 +80,4 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   warrantyMonths?: number;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => VariantDto)
-  variants?: VariantDto[];
 }

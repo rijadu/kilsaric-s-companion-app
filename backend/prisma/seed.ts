@@ -28,12 +28,6 @@ async function main() {
         stock: 2500,
         lowStockThreshold: 500,
         status: 'active',
-        variants: {
-          create: [
-            { name: 'Inox', sku: 'VD-5050-I', stock: 800 },
-            { name: 'Pocinkovani', sku: 'VD-5050-P', stock: 1700 },
-          ],
-        },
       },
     }),
     prisma.product.upsert({
@@ -189,6 +183,20 @@ async function main() {
   ]);
   console.log(`  ✓ ${products.length} products`);
 
+  await prisma.inventoryLot.createMany({
+    skipDuplicates: true,
+    data: products.map((product) => ({
+      id: `lot-${product.id}`,
+      productId: product.id,
+      sourceType: 'initial',
+      unitCost: product.costPrice,
+      receivedQty: product.stock,
+      remainingQty: product.stock,
+      receivedAt: new Date('2026-03-01T08:00:00'),
+    })),
+  });
+  console.log(`  ✓ ${products.length} inventory lots`);
+
   // ── Customers ─────────────────────────────────────────────────────────────
   const customers = await Promise.all([
     prisma.customer.upsert({
@@ -290,7 +298,7 @@ async function main() {
       totalCost: 24000,
       date: new Date('2026-03-26T14:00:00'),
       items: {
-        create: [{ productId: 'prod-3', productName: 'Kabl PP-Y 3x2.5mm²', quantity: 200, costPrice: 120 }],
+        create: [{ productId: 'prod-3', productName: 'Kabl PP-Y 3x2.5mm²', quantity: 200, costPrice: 120, sellingPrice: 195, unit: 'meter' }],
       },
     },
   });
@@ -305,8 +313,8 @@ async function main() {
       date: new Date('2026-03-24T10:00:00'),
       items: {
         create: [
-          { productId: 'prod-1', productName: 'Vijci za drvo 5x50mm', quantity: 1000, costPrice: 2.5 },
-          { productId: 'prod-8', productName: 'Tiple Fischer SX 8x40', quantity: 500, costPrice: 8 },
+          { productId: 'prod-1', productName: 'Vijci za drvo 5x50mm', quantity: 1000, costPrice: 2.5, sellingPrice: 4.0, unit: 'piece' },
+          { productId: 'prod-8', productName: 'Tiple Fischer SX 8x40', quantity: 500, costPrice: 8, sellingPrice: 15, unit: 'piece' },
         ],
       },
     },

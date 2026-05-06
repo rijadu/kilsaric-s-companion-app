@@ -70,6 +70,11 @@
         <label class="field">
           <span>Nabavna cena (RSD)</span>
           <input type="number" formControlName="costPrice" placeholder="0" />
+          @if (isEdit() && hasTrackedStock()) {
+            <small class="field-hint">
+              Kod proizvoda sa zalihom nabavna cena se računa iz FIFO lotova; ručna izmena važi tek kada stanje bude 0 ili kroz novu nabavku/korekciju.
+            </small>
+          }
         </label>
         <label class="field">
           <span>Prodajna cena (RSD) *</span>
@@ -152,12 +157,39 @@
       </div>
     </section>
 
-    <button type="submit" class="primary-submit">
+    @if (isEdit() && activeLots().length > 0) {
+      <section class="form-section app-card">
+        <h2>FIFO lotovi</h2>
+        <div class="lot-table">
+          <div class="lot-table__head">
+            <span>Izvor</span>
+            <span>Datum</span>
+            <span>Nabavna</span>
+            <span>Preostalo</span>
+          </div>
+          @for (lot of activeLots(); track lot.id) {
+            <div class="lot-table__row">
+              <div>
+                <strong>{{ lotSourceLabel(lot.sourceType) }}</strong>
+                @if (lot.supplierName) {
+                  <small class="app-muted">{{ lot.supplierName }}</small>
+                }
+              </div>
+              <span>{{ formatDateTime(lot.receiptDate ?? lot.receivedAt) }}</span>
+              <strong>{{ formatCurrency(lot.unitCost) }} RSD</strong>
+              <span>{{ lot.remainingQty }} / {{ lot.receivedQty }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <button type="submit" class="primary-submit" [disabled]="saveInProgress()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M5 21h14a1 1 0 0 0 1-1V7.5L15.5 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1Z" />
         <path d="M15 21v-6H9v6M9 3v5h6" />
       </svg>
-      {{ isEdit() ? 'Sačuvaj izmene' : 'Dodaj proizvod' }}
+      {{ saveInProgress() ? 'Čuvanje...' : isEdit() ? 'Sačuvaj izmene' : 'Dodaj proizvod' }}
     </button>
   </form>
 </section>
