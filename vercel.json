@@ -1,7 +1,6 @@
 {
-  "installCommand": "npm --prefix angular-app install",
   "buildCommand": "npm --prefix angular-app run build",
-  "outputDirectory": "angular-app/dist/kilsaric-companion-angular/browser",
+  "outputDirectory": "angular-app/dist/kilsaric-companion-angular",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

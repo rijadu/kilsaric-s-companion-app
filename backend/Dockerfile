@@ -4,14 +4,14 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
-COPY backend/package*.json ./
-COPY backend/prisma ./prisma/
-COPY backend/tsconfig.json ./
-COPY backend/nest-cli.json ./
-COPY backend/src ./src
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY tsconfig.json ./
+COPY nest-cli.json ./
+COPY src ./src
 
 RUN npm ci
-RUN DATABASE_URL="postgresql://user:password@localhost:5432/kilsaric_build" npx prisma generate
+RUN npx prisma generate
 RUN npx tsc
 RUN test -f dist/main.js || (echo "BUILD FAILED: dist/main.js not found" && exit 1)
 
