@@ -4,11 +4,11 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY tsconfig.json ./
-COPY nest-cli.json ./
-COPY src ./src
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+COPY backend/tsconfig.json ./
+COPY backend/nest-cli.json ./
+COPY backend/src ./src
 
 RUN npm ci
 RUN npx prisma generate
