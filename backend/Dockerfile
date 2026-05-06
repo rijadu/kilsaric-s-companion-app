@@ -11,7 +11,7 @@ COPY backend/nest-cli.json ./
 COPY backend/src ./src
 
 RUN npm ci
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://user:password@localhost:5432/kilsaric_build" npx prisma generate
 RUN npx tsc
 RUN test -f dist/main.js || (echo "BUILD FAILED: dist/main.js not found" && exit 1)
 
