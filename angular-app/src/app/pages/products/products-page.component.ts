@@ -32,6 +32,7 @@ export class ProductsPageComponent {
   protected readonly correctionProductId = signal<string | null>(null);
   protected readonly correctionQty = signal('');
   protected readonly correctionNote = signal('');
+  protected readonly highlightedProductId = signal<string | null>(null);
   protected readonly categories = this.store.availableCategories;
 
   protected readonly activeSubcategories = computed(() => {
@@ -48,12 +49,21 @@ export class ProductsPageComponent {
   constructor() {
     effect(() => {
       const saved = this.queryParams().get('saved');
-      if (!saved) return;
+      const productId = this.queryParams().get('productId');
+      if (!saved && !productId) return;
+
+      if (productId) {
+        this.search.set('');
+        this.selectedCategory.set(null);
+        this.selectedSubcategory.set(null);
+        this.highlightedProductId.set(productId);
+      }
+
       if (saved === 'created') this.snackbar.success('Proizvod je dodat.');
       if (saved === 'updated') this.snackbar.success('Izmene proizvoda su sačuvane.');
       void this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { saved: null },
+        queryParams: { saved: null, productId: null },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       });
@@ -85,6 +95,10 @@ export class ProductsPageComponent {
       );
     });
   });
+
+  protected isHighlighted(productId: string): boolean {
+    return this.highlightedProductId() === productId;
+  }
 
   protected selectCategory(category: string | null): void {
     this.selectedCategory.set(

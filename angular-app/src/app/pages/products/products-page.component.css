@@ -212,6 +212,12 @@
   display: block;
 }
 
+.product-entry--highlight {
+  border-radius: 1rem;
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+}
+
 .product-entry__delete {
   position: absolute;
   top: 0.6rem;

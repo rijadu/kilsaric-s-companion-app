@@ -1,6 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Product } from '../../shared/mock-data';
@@ -45,15 +45,15 @@ export class ProductFormPageComponent {
   ];
 
   protected readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
+    name: [''],
     sku: [''],
     barcode: [''],
-    category: ['', Validators.required],
+    category: [''],
     subcategory: [''],
     brand: [''],
     description: [''],
-    costPrice: ['', [Validators.required, Validators.min(0)]],
-    sellingPrice: ['', [Validators.required, Validators.min(0)]],
+    costPrice: [''],
+    sellingPrice: [''],
     bulkPrice: [''],
     bulkMinQty: [''],
     unit: ['piece' as ProductUnit],
@@ -140,11 +140,6 @@ export class ProductFormPageComponent {
 
   protected async save(): Promise<void> {
     if (this.saveInProgress()) return;
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.snackbar.error('Popunite obavezna polja za proizvod.');
-      return;
-    }
 
     const payload = this.buildProductPayload();
     this.saveInProgress.set(true);
@@ -161,9 +156,9 @@ export class ProductFormPageComponent {
         return;
       }
 
-      await this.store.createProduct(payload);
+      const created = await this.store.createProduct(payload);
       void this.router.navigate(['/products'], {
-        queryParams: { saved: 'created' },
+        queryParams: { saved: 'created', productId: created.id },
       });
     } catch {
       this.snackbar.error('Proizvod nije sačuvan. Proverite podatke i pokušajte ponovo.');

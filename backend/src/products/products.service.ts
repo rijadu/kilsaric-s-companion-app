@@ -84,7 +84,7 @@ export class ProductsService {
           packSize: rest.packSize,
           stock: initialStock,
           lowStockThreshold: rest.lowStockThreshold ?? 0,
-          status: rest.status ?? 'active',
+          status: 'active',
           image: rest.image,
           warrantyMonths: rest.warrantyMonths,
           expiryDate: expiryDate ? new Date(expiryDate) : undefined,
