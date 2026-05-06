@@ -1,6 +1,7 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Product } from '../../shared/mock-data';
@@ -160,7 +161,15 @@ export class ProductFormPageComponent {
       void this.router.navigate(['/products'], {
         queryParams: { saved: 'created', productId: created.id },
       });
-    } catch {
+    } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 409
+      ) {
+        this.snackbar.error('Proizvod sa istim nazivom već postoji.');
+        return;
+      }
+
       this.snackbar.error('Proizvod nije sačuvan. Proverite podatke i pokušajte ponovo.');
     } finally {
       this.saveInProgress.set(false);

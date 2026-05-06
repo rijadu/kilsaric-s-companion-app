@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -65,11 +65,26 @@ export class ProductsService {
   async create(dto: CreateProductDto) {
     const { expiryDate, ...rest } = dto;
     const initialStock = rest.stock ?? 0;
+    const name = this.normalizeName(rest.name);
+
+    if (name) {
+      const duplicate = await this.prisma.product.findFirst({
+        where: {
+          name: { equals: name, mode: 'insensitive' },
+          status: 'active',
+        },
+        select: { id: true },
+      });
+
+      if (duplicate) {
+        throw new ConflictException('Proizvod sa istim nazivom već postoji.');
+      }
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: {
-          name: rest.name ?? '',
+          name,
           sku: rest.sku || `SKU-${randomUUID().slice(0, 8).toUpperCase()}`,
           barcode: rest.barcode || randomUUID().replace(/-/g, '').slice(0, 13),
           category: rest.category ?? '',
@@ -124,6 +139,22 @@ export class ProductsService {
   async update(id: string, dto: UpdateProductDto) {
     const existing = await this.findOne(id);
     const { expiryDate, stock, costPrice, ...rest } = dto;
+    const name = rest.name === undefined ? undefined : this.normalizeName(rest.name);
+
+    if (name) {
+      const duplicate = await this.prisma.product.findFirst({
+        where: {
+          id: { not: id },
+          name: { equals: name, mode: 'insensitive' },
+          status: 'active',
+        },
+        select: { id: true },
+      });
+
+      if (duplicate) {
+        throw new ConflictException('Proizvod sa istim nazivom već postoji.');
+      }
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const desiredStock = stock ?? existing.stock;
@@ -147,6 +178,7 @@ export class ProductsService {
         where: { id },
         data: {
           ...rest,
+          name,
           costPrice:
             desiredStock === 0 && typeof costPrice === 'number'
               ? costPrice
@@ -244,5 +276,9 @@ export class ProductsService {
       where: { id: productId },
       data: { costPrice: latestLot.unitCost },
     });
+  }
+
+  private normalizeName(name?: string) {
+    return name?.trim().replace(/\s+/g, ' ') ?? '';
   }
 }
