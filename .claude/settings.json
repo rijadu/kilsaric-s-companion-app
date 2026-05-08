@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls -la)",
+      "Bash(psql \"postgresql://rijadukic@localhost:5432/kilsaric\" -c \"SELECT COUNT\\(*\\), status FROM \\\\\"Product\\\\\" GROUP BY status;\")",
+      "Bash(railway variables *)",
+      "Bash(railway run *)",
+      "Bash(railway service *)",
+      "Bash(railway ps *)"
+    ]
+  }
+}

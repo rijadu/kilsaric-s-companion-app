@@ -162,6 +162,7 @@ export class ProductFormPageComponent {
         queryParams: { saved: 'created', productId: created.id },
       });
     } catch (error) {
+      this.saveInProgress.set(false);
       if (
         error instanceof HttpErrorResponse &&
         error.status === 409
@@ -171,8 +172,6 @@ export class ProductFormPageComponent {
       }
 
       this.snackbar.error('Proizvod nije sačuvan. Proverite podatke i pokušajte ponovo.');
-    } finally {
-      this.saveInProgress.set(false);
     }
   }
 
